@@ -275,6 +275,16 @@ void Node::_propagate_ready() {
 
 	data.blocked--;
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !data.editplay) {
+		Ref<Script> scr = get_script();
+		if (!scr->is_tool()) {
+			return;
+		}
+	}
+#endif
+
 	notification(NOTIFICATION_POST_ENTER_TREE);
 
 	if (data.ready_first) {
@@ -286,6 +296,31 @@ void Node::_propagate_ready() {
 
 void Node::_propagate_enter_tree() {
 	// this needs to happen to all children before any enter_tree
+
+	// E_EDITPLAY
+// #ifdef TOOLS_ENABLED
+// 	if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !data.editplay) {
+// 		Ref<Script> scr = get_script();
+// 		if (!scr->is_tool()) {
+// 			return;
+// 		}
+// 		// E_EDITPLAY TODO: should we do that?
+// 		// For example, AudioStreamPlayer with autoplay will play if you switch tabs.
+// 		// But also there might be some user code that relies on the _enter_tree, so
+// 		// it wouldn't be cool to make it basically ready.
+// 		// if (data.editplay_did_enter_tree) {
+// 		// 	return;
+// 		// } else {
+// 		// 	data.editplay_did_enter_tree = true;
+// 		// }
+// 	}
+	// if (!get_script().is_null()) {
+	// 	Ref<Script> scr = get_script();
+	// 	print_line(get_name(), "has script", scr->get_name(), scr->get_class_name(), "is tool?", scr->is_tool());
+	// } else {
+	// 	print_line(get_name(), "script is null");
+	// }
+// #endif
 
 	if (data.parent) {
 		data.tree = data.parent->data.tree;
@@ -572,6 +607,21 @@ void Node::owner_changed_notify() {
 }
 
 void Node::_physics_interpolated_changed() {}
+
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+void Node::set_editplay(bool set_editplay) {
+	data.editplay = set_editplay;
+}
+
+bool Node::is_editplay() const {
+	return data.editplay;
+}
+
+bool Node::get_editplay() const {
+	return data.editplay;
+}
+#endif
 
 void Node::set_physics_process(bool p_process) {
 	ERR_THREAD_GUARD
@@ -868,7 +918,56 @@ bool Node::can_process() const {
 	return !get_tree()->is_suspended() && _can_process(get_tree()->is_paused());
 }
 
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+bool Node::can_process_editplay() const {
+	ERR_FAIL_COND_V(!is_inside_tree(), false);
+	return _can_process_editplay(get_tree()->is_paused());
+}
+#endif
+
 bool Node::_can_process(bool p_paused) const {
+	ProcessMode process_mode;
+
+	if (data.process_mode == PROCESS_MODE_INHERIT) {
+		if (!data.process_owner) {
+			process_mode = PROCESS_MODE_PAUSABLE;
+		} else {
+			process_mode = data.process_owner->data.process_mode;
+		}
+	} else {
+		process_mode = data.process_mode;
+	}
+
+	// The owner can't be set to inherit, must be a bug.
+	ERR_FAIL_COND_V(process_mode == PROCESS_MODE_INHERIT, false);
+
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !data.editplay) {
+		Ref<Script> scr = get_script();
+		if (!scr->is_tool()) {
+			return false;
+		}
+	}
+#endif
+
+	if (process_mode == PROCESS_MODE_DISABLED) {
+		return false;
+	} else if (process_mode == PROCESS_MODE_ALWAYS) {
+		return true;
+	}
+
+	if (p_paused) {
+		return process_mode == PROCESS_MODE_WHEN_PAUSED;
+	} else {
+		return process_mode == PROCESS_MODE_PAUSABLE;
+	}
+}
+
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+bool Node::_can_process_editplay(bool p_paused) const {
 	ProcessMode process_mode;
 
 	if (data.process_mode == PROCESS_MODE_INHERIT) {
@@ -896,6 +995,7 @@ bool Node::_can_process(bool p_paused) const {
 		return process_mode == PROCESS_MODE_PAUSABLE;
 	}
 }
+#endif
 
 void Node::set_physics_interpolation_mode(PhysicsInterpolationMode p_mode) {
 	ERR_THREAD_GUARD
@@ -3698,6 +3798,12 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_physics_interpolated_and_enabled"), &Node::is_physics_interpolated_and_enabled);
 	ClassDB::bind_method(D_METHOD("reset_physics_interpolation"), &Node::reset_physics_interpolation);
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	ClassDB::bind_method(D_METHOD("get_editplay"), &Node::get_editplay);
+	ClassDB::bind_method(D_METHOD("set_editplay", "set_editplay"), &Node::set_editplay);
+#endif
+
 	ClassDB::bind_method(D_METHOD("set_auto_translate_mode", "mode"), &Node::set_auto_translate_mode);
 	ClassDB::bind_method(D_METHOD("get_auto_translate_mode"), &Node::get_auto_translate_mode);
 	ClassDB::bind_method(D_METHOD("set_translation_domain_inherited"), &Node::set_translation_domain_inherited);
@@ -3931,6 +4037,11 @@ Node::Node() {
 	orphan_node_count++;
 
 	// Default member initializer for bitfield is a C++20 extension, so:
+
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	data.editplay = false;
+#endif
 
 	data.process_mode = PROCESS_MODE_INHERIT;
 	data.physics_interpolation_mode = PHYSICS_INTERPOLATION_MODE_INHERIT;

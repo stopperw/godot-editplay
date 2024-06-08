@@ -5713,6 +5713,13 @@ void EditorNode::_restart_editor(bool p_goto_project_manager) {
 	OS::get_singleton()->set_restart_on_exit(true, args);
 }
 
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+void EditorNode::close_scene(int p_tab) {
+	_scene_tab_closed(p_tab);
+}
+#endif
+
 void EditorNode::_scene_tab_closed(int p_tab) {
 	current_menu_option = SCENE_TAB_CLOSE;
 	tab_closing_idx = p_tab;
@@ -5721,6 +5728,14 @@ void EditorNode::_scene_tab_closed(int p_tab) {
 		_discard_changes();
 		return;
 	}
+	// E_EDITPLAY
+	// Fixes: Don't show save dialog for EditPlay scene tab
+#ifdef TOOLS_ENABLED
+	if (scene->get_editplay()) {
+		_discard_changes();
+		return;
+	}
+#endif
 
 	String scene_filename = scene->get_scene_file_path();
 	String unsaved_message;
@@ -6914,7 +6929,8 @@ EditorNode::EditorNode() {
 		PhysicsServer2D::get_singleton()->set_active(false);
 
 		// No scripting by default if in editor (except for tool).
-		ScriptServer::set_scripting_enabled(false);
+		// E_EDITPLAY: Need all scripting to be enabled for this to work
+		// ScriptServer::set_scripting_enabled(false);
 
 		if (!DisplayServer::get_singleton()->is_touchscreen_available()) {
 			// Only if no touchscreen ui hint, disable emulation just in case.

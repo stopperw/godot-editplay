@@ -798,7 +798,12 @@ public:
 	Error load_scene(const String &p_scene, bool p_ignore_broken_deps = false, bool p_set_inherited = false, bool p_force_open_imported = false, bool p_silent_change_tab = false);
 	Error load_resource(const String &p_resource, bool p_ignore_broken_deps = false);
 
-	HashMap<StringName, Variant> get_modified_properties_for_node(Node *p_node, bool p_node_references_only);
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	void close_scene(int p_tab);
+#endif
+
+	HashMap<StringName, Variant> get_modified_properties_for_node(Node *p_node, bool p_nodes_references_only);
 	HashMap<StringName, Variant> get_modified_properties_reference_to_nodes(Node *p_node, List<Node *> &p_nodes_referenced_by);
 
 	void set_unfocused_low_processor_usage_mode_enabled(bool p_enabled);

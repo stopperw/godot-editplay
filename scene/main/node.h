@@ -33,6 +33,8 @@
 
 #include "core/string/node_path.h"
 #include "core/variant/typed_array.h"
+#include "modules/editplay/editplay.h"
+#include "modules/editplay/editplay_scene_tree_mask.h"
 #include "scene/main/scene_tree.h"
 #include "scene/scene_string_names.h"
 
@@ -181,6 +183,9 @@ private:
 
 #ifdef TOOLS_ENABLED
 		NodePath import_path; // Path used when imported, used by scene editors to keep tracking.
+		// E_EDITPLAY
+		bool editplay : 1;
+		// bool editplay_did_enter_tree : 1;
 #endif
 		String editor_description;
 
@@ -302,6 +307,10 @@ private:
 	void _propagate_suspend_notification(bool p_enable);
 
 	_FORCE_INLINE_ bool _can_process(bool p_paused) const;
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	_FORCE_INLINE_ bool _can_process_editplay(bool p_paused) const;
+#endif
 	_FORCE_INLINE_ bool _is_enabled() const;
 
 	void _release_unique_name_in_owner();
@@ -673,9 +682,20 @@ public:
 
 	void replace_by(Node *p_node, bool p_keep_groups = false);
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	void set_editplay(bool set_editplay);
+	bool is_editplay() const;
+	bool get_editplay() const;
+#endif
+
 	void set_process_mode(ProcessMode p_mode);
 	ProcessMode get_process_mode() const;
 	bool can_process() const;
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	bool can_process_editplay() const;
+#endif
 	bool can_process_notification(int p_what) const;
 
 	void set_physics_interpolation_mode(PhysicsInterpolationMode p_mode);

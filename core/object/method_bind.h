@@ -32,6 +32,8 @@
 #define METHOD_BIND_H
 
 #include "core/variant/binder_common.h"
+// #include "modules/editplay/editplay.h"
+// #include "scene/main/scene_tree.h"
 
 VARIANT_BITFIELD_CAST(MethodFlags)
 
@@ -614,6 +616,16 @@ public:
 #ifdef TOOLS_ENABLED
 		ERR_FAIL_COND_V_MSG(p_object && p_object->is_extension_placeholder() && p_object->get_class_name() == get_instance_class(), ret, vformat("Cannot call method bind '%s' on placeholder instance.", MethodBind::get_name()));
 #endif
+		// E_EDITPLAY
+		// FIXME: Terrible hack
+		// if (method == &SceneTree::get_root) {
+		// 	SceneTree* t = Object::cast_to<SceneTree>(p_object);
+		// 	if (t) {
+		// 		if (EditPlay::singleton && EditPlay::get_singleton()->is_editplay()) {
+		// 			return Variant();
+		// 		}
+		// 	}
+		// }
 #ifdef TYPED_METHOD_BIND
 		call_with_variant_args_retc_dv(static_cast<T *>(p_object), method, p_args, p_arg_count, ret, r_error, get_default_arguments());
 #else
