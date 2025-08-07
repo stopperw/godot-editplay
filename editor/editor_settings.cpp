@@ -1020,10 +1020,6 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 #endif
 	EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "project_manager/default_renderer", default_renderer, "forward_plus,mobile,gl_compatibility")
 
-#undef EDITOR_SETTING
-#undef EDITOR_SETTING_BASIC
-#undef EDITOR_SETTING_USAGE
-
 	/* EditPlay */
 	// E_EDITPLAY
 	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/play_current_scene", false, "")
@@ -1032,6 +1028,10 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/rebuild_dotnet_on_play", true, "")
 #endif
 	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/use_project_settings_for_viewport", true, "")
+
+#undef EDITOR_SETTING
+#undef EDITOR_SETTING_BASIC
+#undef EDITOR_SETTING_USAGE
 
 	if (p_extra_config.is_valid()) {
 		if (p_extra_config->has_section("init_projects") && p_extra_config->has_section_key("init_projects", "list")) {
