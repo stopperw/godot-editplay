@@ -193,7 +193,7 @@ void EditPlayContainer::_propagate_nonpositional_event(const Ref<InputEvent> &p_
 	}
 
 	bool send;
-	print_line("non pos event", p_event);
+	// print_line("non pos event", p_event);
 	if (GDVIRTUAL_CALL(_propagate_input_event, p_event, send)) {
 		if (!send) {
 			return;

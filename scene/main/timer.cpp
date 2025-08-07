@@ -35,7 +35,7 @@ void Timer::_notification(int p_what) {
 		case NOTIFICATION_READY: {
 			if (autostart) {
 #ifdef TOOLS_ENABLED
-				if (is_part_of_edited_scene()) {
+				if (is_part_of_edited_scene() && !get_editplay()) {
 					break;
 				}
 #endif

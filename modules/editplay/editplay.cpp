@@ -58,16 +58,16 @@ void EditPlay::init(Node *world_viewport, Node *root) {
 		child->set_editplay(true);
 	}
 
-	// EditorNode *editor = EditorNode::get_singleton();
-	// ep_scene = editor->new_scene();
-	// editor->set_edited_scene(world_viewport);
+	EditorNode *editor = EditorNode::get_singleton();
+	ep_scene = editor->new_scene();
+	editor->set_edited_scene(world_viewport);
 
-	scene_tree = memnew(SceneTree);
-	root->get_parent()->remove_child(root);
-	scene_tree->get_root()->add_child(root);
-	scene_tree->set_current_scene(root);
-	scene_tree->get_root()->set_transient(true);
-	scene_tree->initialize();
+	// scene_tree = memnew(SceneTree);
+	// root->get_parent()->remove_child(root);
+	// scene_tree->get_root()->add_child(root);
+	// scene_tree->set_current_scene(root);
+	// scene_tree->get_root()->set_transient(true);
+	// scene_tree->initialize();
 
 	viewport = world_viewport;
 	active_root = root;
@@ -118,10 +118,11 @@ void EditPlay::process(double delta) {
 	if (!active_root->is_inside_tree()) {
 		return;
 	}
-	if (!scene_tree) {
-		return;
-	}
-	scene_tree->process(delta);
+	// if (!scene_tree) {
+	// 	return;
+	// }
+	// scene_tree->process(delta);
+
 	// active_root->notification(Node::NOTIFICATION_PROCESS);
 	// for (Variant obj : get_all_children(active_root)) {
 	// 	Node* target = cast_to<Node>(obj.get_validated_object());
