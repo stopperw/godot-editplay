@@ -652,14 +652,13 @@
 		<member name="editors/visual_editors/visual_shader/port_preview_size" type="int" setter="" getter="">
 			The size to use for port previews in the visual shader uniforms (toggled by clicking the "eye" icon next to an output). The value is defined in pixels at 100% zoom, and will scale with zoom automatically.
 		</member>
-<<<<<<< HEAD
 		<member name="export/ssh/scp" type="String" setter="" getter="">
 			Path to the SCP (secure copy) executable (used for remote deploy to desktop platforms). If left empty, the editor will attempt to run [code]scp[/code] from [code]PATH[/code].
 			[b]Note:[/b] SCP is not the same as SFTP. Specifying the SFTP executable here will not work.
 		</member>
 		<member name="export/ssh/ssh" type="String" setter="" getter="">
 			Path to the SSH executable (used for remote deploy to desktop platforms). If left empty, the editor will attempt to run [code]ssh[/code] from [code]PATH[/code].
-=======
+		</member>
 		<member name="editplay/make_all_children_editable" type="bool" setter="" getter="">
 			If [code]true[/code], EditPlay will make all instanced scene show all children.
 		</member>
@@ -671,7 +670,6 @@
 		</member>
 		<member name="editplay/use_project_settings_for_viewport" type="bool" setter="" getter="">
 			If [code]true[/code], EditPlay will configure it's SubViewport like current project settings.
->>>>>>> EditPlay (4.3)
 		</member>
 		<member name="filesystem/directories/autoscan_project_path" type="String" setter="" getter="">
 			The folder where projects should be scanned for (recursively), in a way similar to the project manager's [b]Scan[/b] button. This can be set to the same value as [member filesystem/directories/default_project_path] for convenience.
