@@ -99,7 +99,11 @@ void AudioStreamPlayerInternal::notification(int p_what) {
 #endif
 				play_callable.call(0.0);
 			}
+#ifdef TOOLS_ENABLED
+			set_stream_paused(!node->can_process_editplay());
+#else
 			set_stream_paused(!node->can_process());
+#endif
 		} break;
 
 		case Node::NOTIFICATION_EXIT_TREE: {

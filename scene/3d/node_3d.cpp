@@ -463,6 +463,9 @@ Transform3D Node3D::get_global_transform_interpolated() {
 }
 
 Transform3D Node3D::get_global_transform() const {
+	if (!is_inside_tree()) {
+		print_line(get_name());
+	}
 	ERR_FAIL_COND_V(!is_inside_tree(), Transform3D());
 
 	/* Due to how threads work at scene level, while this global transform won't be able to be changed from outside a thread,

@@ -687,6 +687,7 @@ public:
 	void set_editplay(bool set_editplay);
 	bool is_editplay() const;
 	bool get_editplay() const;
+	bool find_editplay() const;
 #endif
 
 	void set_process_mode(ProcessMode p_mode);

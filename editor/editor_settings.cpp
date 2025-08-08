@@ -1024,9 +1024,6 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	// E_EDITPLAY
 	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/play_current_scene", false, "")
 	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/make_all_children_editable", false, "")
-#ifdef MODULE_MONO_ENABLED
-	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/rebuild_dotnet_on_play", true, "")
-#endif
 	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/use_project_settings_for_viewport", true, "")
 
 #undef EDITOR_SETTING

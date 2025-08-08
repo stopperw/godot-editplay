@@ -472,9 +472,18 @@ void SceneTree::initialize() {
 
 void SceneTree::set_physics_interpolation_enabled(bool p_enabled) {
 	// We never want interpolation in the editor.
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint() && (!EditPlay::get_singleton() || !EditPlay::get_singleton()->is_editplay())) {
+		p_enabled = false;
+	} else {
+		p_enabled = true;
+	}
+#else
 	if (Engine::get_singleton()->is_editor_hint()) {
 		p_enabled = false;
 	}
+#endif
 
 	if (p_enabled == _physics_interpolation_enabled) {
 		return;
@@ -1503,6 +1512,14 @@ void SceneTree::set_current_scene(Node *p_scene) {
 	current_scene = p_scene;
 }
 
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+void SceneTree::set_current_scene_unchecked(Node *p_scene) {
+	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Changing scene can only be done from the main thread.");
+	current_scene = p_scene;
+}
+#endif
+
 Node *SceneTree::get_current_scene() const {
 	return current_scene;
 }
@@ -1513,7 +1530,17 @@ void SceneTree::_flush_scene_change() {
 		prev_scene = nullptr;
 	}
 	current_scene = pending_new_scene;
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_editplay()) {
+		EditPlay::get_singleton()->get_viewport()->add_child(pending_new_scene);
+		EditPlay::get_singleton()->fix_ownership(pending_new_scene, EditPlay::get_singleton()->get_viewport());
+	} else {
+		root->add_child(pending_new_scene);
+	}
+#else
 	root->add_child(pending_new_scene);
+#endif
 	pending_new_scene = nullptr;
 	// Update display for cursor instantly.
 	root->update_mouse_cursor_state();
@@ -1546,7 +1573,17 @@ Error SceneTree::change_scene_to_packed(const Ref<PackedScene> &p_scene) {
 	if (current_scene) {
 		// Let as many side effects as possible happen or be queued now,
 		// so they are run before the scene is actually deleted.
+		// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+		if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_editplay()) {
+			// TODO: potential memory leak?
+			EditPlay::get_singleton()->get_active_root()->get_parent()->remove_child(EditPlay::get_singleton()->get_active_root());
+		} else {
+			root->remove_child(current_scene);
+		}
+#else
 		root->remove_child(current_scene);
+#endif
 	}
 	DEV_ASSERT(!current_scene);
 
@@ -1572,7 +1609,16 @@ void SceneTree::unload_current_scene() {
 void SceneTree::add_current_scene(Node *p_current) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Adding a current scene can only be done from the main thread.");
 	current_scene = p_current;
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_editplay()) {
+		EditPlay::get_singleton()->get_viewport()->add_child(p_current);
+		EditPlay::get_singleton()->fix_ownership(p_current, EditPlay::get_singleton()->get_viewport());
+	} else {
+		root->add_child(p_current);
+	}
+#else
 	root->add_child(p_current);
+#endif
 }
 
 Ref<SceneTreeTimer> SceneTree::create_timer(double p_delay_sec, bool p_process_always, bool p_process_in_physics, bool p_ignore_time_scale) {

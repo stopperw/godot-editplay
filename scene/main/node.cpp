@@ -63,6 +63,11 @@ void Node::_notification(int p_notification) {
 			ERR_FAIL_NULL(get_viewport());
 			ERR_FAIL_NULL(get_tree());
 
+#ifdef TOOLS_ENABLED
+			if (find_editplay())
+				set_editplay(true);
+#endif
+
 			// Update process mode.
 			if (data.process_mode == PROCESS_MODE_INHERIT) {
 				if (data.parent) {
@@ -620,6 +625,14 @@ bool Node::is_editplay() const {
 
 bool Node::get_editplay() const {
 	return data.editplay;
+}
+
+bool Node::find_editplay() const {
+	if (data.editplay)
+		return true;
+	if (data.parent)
+		return data.parent->find_editplay();
+	return false;
 }
 #endif
 

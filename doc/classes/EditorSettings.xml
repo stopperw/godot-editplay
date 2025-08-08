@@ -660,7 +660,7 @@
 			Path to the SSH executable (used for remote deploy to desktop platforms). If left empty, the editor will attempt to run [code]ssh[/code] from [code]PATH[/code].
 		</member>
 		<member name="editplay/make_all_children_editable" type="bool" setter="" getter="">
-			If [code]true[/code], EditPlay will make all instanced scene show all children.
+			If [code]true[/code], EditPlay will make all instanced scene show all children. Can cause decreased performance and lag spikes, so use with care.
 		</member>
 		<member name="editplay/play_current_scene" type="bool" setter="" getter="">
 			If [code]true[/code], EditPlay will start currently open scene instead of project's [member application/run/main_scene].
