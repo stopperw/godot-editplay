@@ -86,14 +86,6 @@ int EditPlayContainer::get_stretch_shrink() const {
 	return shrink;
 }
 
-// Vector<int> EditPlayContainer::get_allowed_size_flags_horizontal() const {
-// 	return Vector<int>();
-// }
-//
-// Vector<int> EditPlayContainer::get_allowed_size_flags_vertical() const {
-// 	return Vector<int>();
-// }
-
 void EditPlayContainer::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_RESIZED: {
@@ -109,12 +101,6 @@ void EditPlayContainer::_notification(int p_what) {
 			if (!viewport) {
 				return;
 			}
-
-			// if (is_visible_in_tree()) {
-			// 	viewport->set_update_mode(SubViewport::UPDATE_ALWAYS);
-			// } else {
-			// 	viewport->set_update_mode(SubViewport::UPDATE_DISABLED);
-			// }
 
 			viewport->set_handle_input_locally(false); //do not handle input locally here
 		} break;
@@ -193,7 +179,6 @@ void EditPlayContainer::_propagate_nonpositional_event(const Ref<InputEvent> &p_
 	}
 
 	bool send;
-	// print_line("non pos event", p_event);
 	if (GDVIRTUAL_CALL(_propagate_input_event, p_event, send)) {
 		if (!send) {
 			return;
@@ -267,7 +252,7 @@ PackedStringArray EditPlayContainer::get_configuration_warnings() const {
 	PackedStringArray warnings = Node::get_configuration_warnings();
 
 	if (target_node.is_null()) {
-		warnings.push_back("You probably shouldn't use this yourself...\nBut if you do, make sure the Target is set.");
+		warnings.push_back("You probably shouldn't use this.\nBut if you do, make sure the Target is set.");
 	}
 
 	if (get_default_cursor_shape() != Control::CURSOR_ARROW) {

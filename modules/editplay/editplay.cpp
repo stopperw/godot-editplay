@@ -74,13 +74,6 @@ void EditPlay::init(Node *world_viewport, Node *root) {
 		initial_current_scene = world_viewport->get_tree()->get_current_scene();
 	world_viewport->get_tree()->set_current_scene_unchecked(root);
 
-	// scene_tree = memnew(SceneTree);
-	// root->get_parent()->remove_child(root);
-	// scene_tree->get_root()->add_child(root);
-	// scene_tree->set_current_scene(root);
-	// scene_tree->get_root()->set_transient(true);
-	// scene_tree->initialize();
-
 	viewport = world_viewport;
 	active_root = root;
 	playing = true;
@@ -227,6 +220,8 @@ void EditPlay::init_autoload(Node *world_viewport) {
 	if (!world_viewport) {
 		return;
 	}
+
+	// copied from engine's autoload init code
 
 	HashMap<StringName, ProjectSettings::AutoloadInfo> autoloads = ProjectSettings::get_singleton()->get_autoload_list();
 
