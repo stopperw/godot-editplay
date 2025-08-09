@@ -1022,7 +1022,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 
 	/* EditPlay */
 	// E_EDITPLAY
-	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/play_current_scene", false, "")
+	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/play_current_scene", true, "")
 	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/make_all_children_editable", false, "")
 	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/use_project_settings_for_viewport", true, "")
 

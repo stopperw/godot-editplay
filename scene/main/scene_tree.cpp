@@ -752,6 +752,14 @@ void SceneTree::finalize() {
 void SceneTree::quit(int p_exit_code) {
 	_THREAD_SAFE_METHOD_
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_editplay()) {
+		print_line("[EditPlay] Preventing SceneTree::quit() to stop editor from exiting. Please stop the EditPlay session.");
+		return;
+	}
+#endif
+
 	OS::get_singleton()->set_exit_code(p_exit_code);
 	_quit = true;
 }
@@ -1535,6 +1543,7 @@ void SceneTree::_flush_scene_change() {
 	if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_editplay()) {
 		EditPlay::get_singleton()->get_viewport()->add_child(pending_new_scene);
 		EditPlay::get_singleton()->fix_ownership(pending_new_scene, EditPlay::get_singleton()->get_viewport());
+		EditPlay::get_singleton()->set_active_root(pending_new_scene);
 	} else {
 		root->add_child(pending_new_scene);
 	}
@@ -1576,7 +1585,6 @@ Error SceneTree::change_scene_to_packed(const Ref<PackedScene> &p_scene) {
 		// E_EDITPLAY
 #ifdef TOOLS_ENABLED
 		if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_editplay()) {
-			// TODO: potential memory leak?
 			EditPlay::get_singleton()->get_active_root()->get_parent()->remove_child(EditPlay::get_singleton()->get_active_root());
 		} else {
 			root->remove_child(current_scene);
@@ -1609,6 +1617,7 @@ void SceneTree::unload_current_scene() {
 void SceneTree::add_current_scene(Node *p_current) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Adding a current scene can only be done from the main thread.");
 	current_scene = p_current;
+	// E_EDITPLAY
 #ifdef TOOLS_ENABLED
 	if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_editplay()) {
 		EditPlay::get_singleton()->get_viewport()->add_child(p_current);

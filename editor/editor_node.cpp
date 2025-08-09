@@ -1944,6 +1944,14 @@ static void _reset_animation_mixers(Node *p_node, List<Pair<AnimationMixer *, Re
 void EditorNode::_save_scene(String p_file, int idx) {
 	ERR_FAIL_COND_MSG(!saving_scene.is_empty() && saving_scene == p_file, "Scene saved while already being saved!");
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		print_line("[EditPlay] Saving is disabled while EditPlay session is active.");
+		return;
+	}
+#endif
+
 	Node *scene = editor_data.get_edited_scene_root(idx);
 
 	if (!scene) {

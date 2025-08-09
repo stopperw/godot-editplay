@@ -18,6 +18,7 @@ class EditPlay : public RefCounted {
 	int ep_scene;
 	bool playing;
 	bool paused;
+	bool freeze_cache;
 
 	Vector<String> created_actions;
 
@@ -32,6 +33,7 @@ public:
 	void init(Node* world_viewport, Node* root);
 	void set_playing(bool is_playing);
 	void set_paused(bool is_paused);
+	void set_active_root(Node* root);
 	void ready();
 	void process(double delta);
 	void input(Ref<InputEvent> event);
@@ -40,6 +42,8 @@ public:
 	void init_autoload(Node* world_viewport);
 	void deinit_autoload();
 	void fix_ownership(Node* node, Node *target_owner) const;
+	bool is_cache_freezed();
+	void set_freeze_cache(bool is_freezed);
 
 	Node* get_viewport();
 	Node* get_active_root();

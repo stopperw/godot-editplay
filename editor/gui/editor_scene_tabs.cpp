@@ -73,6 +73,15 @@ void EditorSceneTabs::_notification(int p_what) {
 void EditorSceneTabs::_scene_tab_changed(int p_tab) {
 	tab_preview_panel->hide();
 
+	// Switching tabs *works*, but can cause some undefined behaviour.
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		print_line("[EditPlay] Changing editor scenes is disabled while EditPlay session is active.");
+		return;
+	}
+#endif
+
 	emit_signal("tab_changed", p_tab);
 }
 

@@ -104,7 +104,15 @@ void EditPlay::set_paused(bool is_paused) {
 		Node *child = cast_to<Node>(obj.get_validated_object());
 		child->set_editplay(!is_paused);
 	}
+	if (is_paused)
+		viewport->propagate_notification(Node::NOTIFICATION_PAUSED);
+	else
+		viewport->propagate_notification(Node::NOTIFICATION_UNPAUSED);
 #endif
+}
+
+void EditPlay::set_active_root(Node* root) {
+	active_root = root;
 }
 
 void EditPlay::ready() {
@@ -207,6 +215,7 @@ void EditPlay::engine_cleanup() {
 	ep_scene = -1;
 	playing = false;
 	paused = false;
+	freeze_cache = false;
 }
 
 bool EditPlay::is_editplay() {
@@ -318,6 +327,14 @@ void EditPlay::fix_ownership(Node *node, Node *target_owner) const {
 #endif
 }
 
+bool EditPlay::is_cache_freezed() {
+	return freeze_cache;
+}
+
+void EditPlay::set_freeze_cache(bool is_freezed) {
+	freeze_cache = is_freezed;
+}
+
 Node* EditPlay::get_viewport() {
 	return viewport;
 }
@@ -356,6 +373,8 @@ void EditPlay::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("init_autoload", "world_viewport"), &EditPlay::init_autoload);
 	ClassDB::bind_method(D_METHOD("deinit_autoload"), &EditPlay::deinit_autoload);
 	ClassDB::bind_method(D_METHOD("fix_ownership", "node", "target_owner"), &EditPlay::fix_ownership);
+	ClassDB::bind_method(D_METHOD("is_cache_freezed"), &EditPlay::is_cache_freezed);
+	ClassDB::bind_method(D_METHOD("set_freeze_cache", "is_freezed"), &EditPlay::set_freeze_cache);
 
 	ClassDB::bind_method(D_METHOD("get_viewport"), &EditPlay::get_viewport);
 	ClassDB::bind_method(D_METHOD("get_active_root"), &EditPlay::get_active_root);
@@ -371,6 +390,7 @@ EditPlay::EditPlay() {
 	ep_scene = -1;
 	playing = false;
 	paused = false;
+	freeze_cache = false;
 }
 
 EditPlay::~EditPlay() {

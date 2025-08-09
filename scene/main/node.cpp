@@ -301,32 +301,6 @@ void Node::_propagate_ready() {
 
 void Node::_propagate_enter_tree() {
 	// this needs to happen to all children before any enter_tree
-
-	// E_EDITPLAY
-// #ifdef TOOLS_ENABLED
-// 	if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !data.editplay) {
-// 		Ref<Script> scr = get_script();
-// 		if (!scr->is_tool()) {
-// 			return;
-// 		}
-// 		// E_EDITPLAY TODO: should we do that?
-// 		// For example, AudioStreamPlayer with autoplay will play if you switch tabs.
-// 		// But also there might be some user code that relies on the _enter_tree, so
-// 		// it wouldn't be cool to make it basically ready.
-// 		// if (data.editplay_did_enter_tree) {
-// 		// 	return;
-// 		// } else {
-// 		// 	data.editplay_did_enter_tree = true;
-// 		// }
-// 	}
-	// if (!get_script().is_null()) {
-	// 	Ref<Script> scr = get_script();
-	// 	print_line(get_name(), "has script", scr->get_name(), scr->get_class_name(), "is tool?", scr->is_tool());
-	// } else {
-	// 	print_line(get_name(), "script is null");
-	// }
-// #endif
-
 	if (data.parent) {
 		data.tree = data.parent->data.tree;
 		data.depth = data.parent->data.depth + 1;
@@ -928,6 +902,11 @@ bool Node::can_process_notification(int p_what) const {
 
 bool Node::can_process() const {
 	ERR_FAIL_COND_V(!is_inside_tree(), false);
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing() && EditPlay::get_singleton()->get_viewport()->is_ancestor_of(this) && !data.editplay)
+		return false;
+#endif
 	return !get_tree()->is_suspended() && _can_process(get_tree()->is_paused());
 }
 
@@ -2789,6 +2768,9 @@ StringName Node::get_property_store_alias(const StringName &p_property) const {
 }
 
 bool Node::is_part_of_edited_scene() const {
+	// E_EDITPLAY
+	if (data.editplay)
+		return false;
 	return Engine::get_singleton()->is_editor_hint() && is_inside_tree() && get_tree()->get_edited_scene_root() &&
 			get_tree()->get_edited_scene_root()->get_parent()->is_ancestor_of(this);
 }

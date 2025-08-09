@@ -44,6 +44,7 @@
 #include "core/templates/rb_set.h"
 #include "core/variant/variant_parser.h"
 #include "servers/rendering_server.h"
+#include "modules/editplay/editplay.h"
 
 #ifdef DEBUG_LOAD_THREADED
 #define print_lt(m_text) print_line(m_text)
@@ -567,6 +568,12 @@ Ref<Resource> ResourceLoader::load(const String &p_path, const String &p_type_hi
 Ref<ResourceLoader::LoadToken> ResourceLoader::_load_start(const String &p_path, const String &p_type_hint, LoadThreadMode p_thread_mode, ResourceFormatLoader::CacheMode p_cache_mode, bool p_for_user) {
 	String local_path = _validate_local_path(p_path);
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	// This makes so that resources don't change in other scenes
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_cache_freezed())
+		p_cache_mode = ResourceFormatLoader::CACHE_MODE_IGNORE;
+#endif
 	bool ignoring_cache = p_cache_mode == ResourceFormatLoader::CACHE_MODE_IGNORE || p_cache_mode == ResourceFormatLoader::CACHE_MODE_IGNORE_DEEP;
 
 	Ref<LoadToken> load_token;
