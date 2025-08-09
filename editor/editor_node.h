@@ -803,7 +803,7 @@ public:
 	void close_scene(int p_tab);
 #endif
 
-	HashMap<StringName, Variant> get_modified_properties_for_node(Node *p_node, bool p_nodes_references_only);
+	HashMap<StringName, Variant> get_modified_properties_for_node(Node *p_node, bool p_node_references_only);
 	HashMap<StringName, Variant> get_modified_properties_reference_to_nodes(Node *p_node, List<Node *> &p_nodes_referenced_by);
 
 	void set_unfocused_low_processor_usage_mode_enabled(bool p_enabled);

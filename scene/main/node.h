@@ -34,7 +34,6 @@
 #include "core/string/node_path.h"
 #include "core/variant/typed_array.h"
 #include "modules/editplay/editplay.h"
-#include "modules/editplay/editplay_scene_tree_mask.h"
 #include "scene/main/scene_tree.h"
 #include "scene/scene_string_names.h"
 
@@ -183,9 +182,9 @@ private:
 
 #ifdef TOOLS_ENABLED
 		NodePath import_path; // Path used when imported, used by scene editors to keep tracking.
+
 		// E_EDITPLAY
 		bool editplay : 1;
-		// bool editplay_did_enter_tree : 1;
 #endif
 		String editor_description;
 

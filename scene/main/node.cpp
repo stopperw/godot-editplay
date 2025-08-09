@@ -63,6 +63,7 @@ void Node::_notification(int p_notification) {
 			ERR_FAIL_NULL(get_viewport());
 			ERR_FAIL_NULL(get_tree());
 
+			// E_EDITPLAY
 #ifdef TOOLS_ENABLED
 			if (find_editplay())
 				set_editplay(true);

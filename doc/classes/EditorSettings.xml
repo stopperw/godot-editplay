@@ -665,9 +665,6 @@
 		<member name="editplay/play_current_scene" type="bool" setter="" getter="">
 			If [code]true[/code], EditPlay will start currently open scene instead of project's [member application/run/main_scene].
 		</member>
-		<member name="editplay/rebuild_dotnet_on_play" type="bool" setter="" getter="">
-			If [code]true[/code], EditPlay will rebuild .NET project when starting playing.
-		</member>
 		<member name="editplay/use_project_settings_for_viewport" type="bool" setter="" getter="">
 			If [code]true[/code], EditPlay will configure it's SubViewport like current project settings.
 		</member>
