@@ -16,6 +16,7 @@
 #include "editor/editor_data.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
+#include "core/config/engine.h"
 #endif
 
 // E_EDITPLAY
@@ -76,12 +77,15 @@ void EditPlay::init(Node *world_viewport, Node *root) {
 
 	viewport = world_viewport;
 	active_root = root;
-	playing = true;
+	set_playing(true);
 #endif
 }
 
 void EditPlay::set_playing(bool is_playing) {
 	playing = is_playing;
+#ifdef TOOLS_ENABLED
+	Engine::get_singleton()->set_editor_hint(!is_playing);
+#endif
 }
 
 void EditPlay::set_paused(bool is_paused) {
@@ -206,7 +210,7 @@ void EditPlay::engine_cleanup() {
 	viewport = nullptr;
 	initial_current_scene = nullptr;
 	ep_scene = -1;
-	playing = false;
+	set_playing(false);
 	paused = false;
 	freeze_cache = false;
 }

@@ -983,6 +983,14 @@ void SceneTree::set_pause(bool p_enabled) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Pause can only be set from the main thread.");
 	ERR_FAIL_COND_MSG(suspended, "Pause state cannot be modified while suspended.");
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (p_enabled && EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		print_line("[EditPlay] Preventing SceneTree::set_pause(true) to stop editor from freezing.");
+		return;
+	}
+#endif
+
 	if (p_enabled == paused) {
 		return;
 	}
@@ -999,6 +1007,12 @@ void SceneTree::set_pause(bool p_enabled) {
 }
 
 bool SceneTree::is_paused() const {
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		return editplay_fake_paused;
+	}
+#endif
 	return paused;
 }
 
