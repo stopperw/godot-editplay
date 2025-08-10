@@ -1007,12 +1007,6 @@ void SceneTree::set_pause(bool p_enabled) {
 }
 
 bool SceneTree::is_paused() const {
-	// E_EDITPLAY
-#ifdef TOOLS_ENABLED
-	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
-		return editplay_fake_paused;
-	}
-#endif
 	return paused;
 }
 

@@ -143,9 +143,6 @@ private:
 	bool debug_navigation_hint = false;
 #endif
 	bool paused = false;
-#ifdef TOOLS_ENABLED
-	bool editplay_fake_paused = false;
-#endif
 	bool suspended = false;
 
 	HashMap<StringName, Group> group_map;
