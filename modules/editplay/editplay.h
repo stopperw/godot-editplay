@@ -42,8 +42,7 @@ public:
 	void init_autoload(Node* world_viewport);
 	void deinit_autoload();
 	void fix_ownership(Node* node, Node *target_owner) const;
-	bool is_cache_freezed();
-	void set_freeze_cache(bool is_freezed);
+	void zap_cache();
 
 	Node* get_viewport();
 	Node* get_current_scene();

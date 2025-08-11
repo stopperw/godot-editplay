@@ -322,16 +322,10 @@ void EditPlay::fix_ownership(Node *node, Node *target_owner) const {
 #endif
 }
 
-bool EditPlay::is_cache_freezed() {
-	return freeze_cache;
-}
-
-void EditPlay::set_freeze_cache(bool is_freezed) {
+void EditPlay::zap_cache() {
 #ifdef TOOLS_ENABLED
-	if (is_freezed)
-		ResourceCache::clear();
+	ResourceCache::clear();
 #endif
-	freeze_cache = is_freezed;
 }
 
 Node* EditPlay::get_viewport() {
@@ -375,8 +369,7 @@ void EditPlay::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("init_autoload", "world_viewport"), &EditPlay::init_autoload);
 	ClassDB::bind_method(D_METHOD("deinit_autoload"), &EditPlay::deinit_autoload);
 	ClassDB::bind_method(D_METHOD("fix_ownership", "node", "target_owner"), &EditPlay::fix_ownership);
-	ClassDB::bind_method(D_METHOD("is_cache_freezed"), &EditPlay::is_cache_freezed);
-	ClassDB::bind_method(D_METHOD("set_freeze_cache", "is_freezed"), &EditPlay::set_freeze_cache);
+	ClassDB::bind_method(D_METHOD("zap_cache"), &EditPlay::zap_cache);
 
 	ClassDB::bind_method(D_METHOD("get_viewport"), &EditPlay::get_viewport);
 	ClassDB::bind_method(D_METHOD("get_current_scene"), &EditPlay::get_current_scene);
