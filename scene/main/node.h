@@ -33,9 +33,10 @@
 
 #include "core/string/node_path.h"
 #include "core/variant/typed_array.h"
-#include "modules/editplay/editplay.h"
 #include "scene/main/scene_tree.h"
 #include "scene/scene_string_names.h"
+// E_EDITPLAY
+#include "modules/editplay/editplay.h"
 
 class Viewport;
 class Window;

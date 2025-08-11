@@ -12,6 +12,7 @@
 #include "scene/main/window.h"
 #include "scene/main/multiplayer_api.h"
 #include "scene/resources/packed_scene.h"
+#include "servers/audio_server.h"
 #ifdef TOOLS_ENABLED
 #include "editor/editor_data.h"
 #include "editor/editor_node.h"
@@ -87,6 +88,7 @@ void EditPlay::set_playing(bool is_playing) {
 	playing = is_playing;
 #ifdef TOOLS_ENABLED
 	Engine::get_singleton()->set_editor_hint(!is_playing);
+	AudioServer::get_singleton()->load_default_bus_layout();
 #endif
 }
 
@@ -324,7 +326,7 @@ void EditPlay::fix_ownership(Node *node, Node *target_owner) const {
 
 void EditPlay::zap_cache() {
 #ifdef TOOLS_ENABLED
-	ResourceCache::clear();
+	ResourceCache::editplay_clear();
 #endif
 }
 

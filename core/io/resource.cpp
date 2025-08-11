@@ -604,12 +604,7 @@ RWLock ResourceCache::path_cache_lock;
 #endif
 
 void ResourceCache::clear() {
-	// E_EDITPLAY
-#ifdef TOOLS_ENABLED
-	if (!resources.is_empty() && (!EditPlay::get_singleton() || !EditPlay::get_singleton()->get_playing())) {
-#else
 	if (!resources.is_empty()) {
-#endif
 		if (OS::get_singleton()->is_stdout_verbose()) {
 			ERR_PRINT(vformat("%d resources still in use at exit.", resources.size()));
 			for (const KeyValue<String, Resource *> &E : resources) {
@@ -622,6 +617,13 @@ void ResourceCache::clear() {
 
 	resources.clear();
 }
+
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+void ResourceCache::editplay_clear() {
+	resources.clear();
+}
+#endif
 
 bool ResourceCache::has(const String &p_path) {
 	Resource **res = nullptr;
