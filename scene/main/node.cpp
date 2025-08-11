@@ -594,10 +594,6 @@ void Node::set_editplay(bool set_editplay) {
 	data.editplay = set_editplay;
 }
 
-bool Node::is_editplay() const {
-	return data.editplay;
-}
-
 bool Node::get_editplay() const {
 	return data.editplay;
 }

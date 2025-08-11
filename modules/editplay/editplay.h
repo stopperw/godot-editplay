@@ -3,7 +3,8 @@
 #ifndef EDITPLAY_H
 #define EDITPLAY_H
 
-#include "scene/main/scene_tree.h"
+#include "core/input/input_event.h"
+
 class Node;
 
 class EditPlay : public RefCounted {
@@ -12,9 +13,8 @@ class EditPlay : public RefCounted {
 	static EditPlay *singleton;
 
 	Node* viewport;
-	Node* active_root;
-	Node* initial_current_scene;
-	SceneTree* scene_tree;
+	Node* current_scene;
+	Node* editor_current_scene;
 	int ep_scene;
 	bool playing;
 	bool paused;
@@ -30,10 +30,10 @@ public:
 	_FORCE_INLINE_ static EditPlay *get_singleton() { return singleton; }
 
 	void trigger_build() const;
-	void init(Node* world_viewport, Node* root);
+	void init(Node* world_viewport, Node* current_scene);
 	void set_playing(bool is_playing);
 	void set_paused(bool is_paused);
-	void set_active_root(Node* root);
+	void set_current_scene(Node* current_scene);
 	void ready();
 	void process(double delta);
 	void input(Ref<InputEvent> event);
@@ -46,8 +46,9 @@ public:
 	void set_freeze_cache(bool is_freezed);
 
 	Node* get_viewport();
-	Node* get_active_root();
+	Node* get_current_scene();
 	bool get_playing();
+	bool is_paused();
 
 	EditPlay();
 	~EditPlay();

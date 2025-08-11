@@ -142,6 +142,10 @@ private:
 	bool debug_paths_hint = false;
 	bool debug_navigation_hint = false;
 #endif
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	bool editplay_fake_paused = false;
+#endif
 	bool paused = false;
 	bool suspended = false;
 
@@ -288,6 +292,10 @@ public:
 	};
 
 	_FORCE_INLINE_ Window *get_root() const { return root; }
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	Window *get_root_fake_bind() const;
+#endif
 
 	void call_group_flagsp(uint32_t p_call_flags, const StringName &p_group, const StringName &p_function, const Variant **p_args, int p_argcount);
 	void notify_group_flags(uint32_t p_call_flags, const StringName &p_group, int p_notification);
@@ -344,6 +352,11 @@ public:
 
 	void set_pause(bool p_enabled);
 	bool is_paused() const;
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	void set_pause_fake_bind(bool p_enabled);
+	bool is_paused_fake_bind() const;
+#endif
 	void set_suspend(bool p_enabled);
 	bool is_suspended() const;
 

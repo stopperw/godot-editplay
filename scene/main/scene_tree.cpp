@@ -474,7 +474,7 @@ void SceneTree::set_physics_interpolation_enabled(bool p_enabled) {
 	// We never want interpolation in the editor.
 	// E_EDITPLAY
 #ifdef TOOLS_ENABLED
-	if (Engine::get_singleton()->is_editor_hint() && (!EditPlay::get_singleton() || !EditPlay::get_singleton()->is_editplay())) {
+	if (Engine::get_singleton()->is_editor_hint() && (!EditPlay::get_singleton() || !EditPlay::get_singleton()->get_playing())) {
 		p_enabled = false;
 	} else {
 		p_enabled = true;
@@ -754,7 +754,7 @@ void SceneTree::quit(int p_exit_code) {
 
 	// E_EDITPLAY
 #ifdef TOOLS_ENABLED
-	if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_editplay()) {
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
 		print_line("[EditPlay] Preventing SceneTree::quit() to stop editor from exiting. Please stop the EditPlay session.");
 		return;
 	}
@@ -984,12 +984,12 @@ void SceneTree::set_pause(bool p_enabled) {
 	ERR_FAIL_COND_MSG(suspended, "Pause state cannot be modified while suspended.");
 
 	// E_EDITPLAY
-#ifdef TOOLS_ENABLED
-	if (p_enabled && EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
-		print_line("[EditPlay] Preventing SceneTree::set_pause(true) to stop editor from freezing.");
-		return;
-	}
-#endif
+// #ifdef TOOLS_ENABLED
+// 	if (p_enabled && EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+// 		print_line("[EditPlay] Preventing SceneTree::set_pause(true) to stop editor from freezing.");
+// 		return;
+// 	}
+// #endif
 
 	if (p_enabled == paused) {
 		return;
@@ -1009,6 +1009,29 @@ void SceneTree::set_pause(bool p_enabled) {
 bool SceneTree::is_paused() const {
 	return paused;
 }
+
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+void SceneTree::set_pause_fake_bind(bool p_enabled) {
+	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Pause can only be set from the main thread.");
+	ERR_FAIL_COND_MSG(suspended, "Pause state cannot be modified while suspended.");
+
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		editplay_fake_paused = p_enabled;
+		return;
+	}
+
+	set_pause(p_enabled);
+}
+
+bool SceneTree::is_paused_fake_bind() const {
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		return editplay_fake_paused;
+	}
+
+	return is_paused();
+}
+#endif
 
 void SceneTree::set_suspend(bool p_enabled) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Suspend can only be set from the main thread.");
@@ -1524,7 +1547,12 @@ Node *SceneTree::get_edited_scene_root() const {
 
 void SceneTree::set_current_scene(Node *p_scene) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Changing scene can only be done from the main thread.");
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	// ERR_FAIL_COND(p_scene && p_scene->get_parent() != root);
+#else
 	ERR_FAIL_COND(p_scene && p_scene->get_parent() != root);
+#endif
 	current_scene = p_scene;
 }
 
@@ -1548,10 +1576,10 @@ void SceneTree::_flush_scene_change() {
 	current_scene = pending_new_scene;
 	// E_EDITPLAY
 #ifdef TOOLS_ENABLED
-	if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_editplay()) {
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
 		EditPlay::get_singleton()->get_viewport()->add_child(pending_new_scene);
 		EditPlay::get_singleton()->fix_ownership(pending_new_scene, EditPlay::get_singleton()->get_viewport());
-		EditPlay::get_singleton()->set_active_root(pending_new_scene);
+		EditPlay::get_singleton()->set_current_scene(pending_new_scene);
 	} else {
 		root->add_child(pending_new_scene);
 	}
@@ -1592,8 +1620,8 @@ Error SceneTree::change_scene_to_packed(const Ref<PackedScene> &p_scene) {
 		// so they are run before the scene is actually deleted.
 		// E_EDITPLAY
 #ifdef TOOLS_ENABLED
-		if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_editplay()) {
-			EditPlay::get_singleton()->get_active_root()->get_parent()->remove_child(EditPlay::get_singleton()->get_active_root());
+		if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+			EditPlay::get_singleton()->get_current_scene()->get_parent()->remove_child(EditPlay::get_singleton()->get_current_scene());
 		} else {
 			root->remove_child(current_scene);
 		}
@@ -1627,7 +1655,7 @@ void SceneTree::add_current_scene(Node *p_current) {
 	current_scene = p_current;
 	// E_EDITPLAY
 #ifdef TOOLS_ENABLED
-	if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_editplay()) {
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
 		EditPlay::get_singleton()->get_viewport()->add_child(p_current);
 		EditPlay::get_singleton()->fix_ownership(p_current, EditPlay::get_singleton()->get_viewport());
 	} else {
@@ -1760,8 +1788,24 @@ bool SceneTree::is_multiplayer_poll_enabled() const {
 	return multiplayer_poll;
 }
 
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+Window* SceneTree::get_root_fake_bind() const {
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		Window *window = cast_to<Window>(EditPlay::get_singleton()->get_viewport());
+		return window;
+	}
+	return root;
+}
+#endif
+
 void SceneTree::_bind_methods() {
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	ClassDB::bind_method(D_METHOD("get_root"), &SceneTree::get_root_fake_bind);
+#else
 	ClassDB::bind_method(D_METHOD("get_root"), &SceneTree::get_root);
+#endif
 	ClassDB::bind_method(D_METHOD("has_group", "name"), &SceneTree::has_group);
 
 	ClassDB::bind_method(D_METHOD("is_auto_accept_quit"), &SceneTree::is_auto_accept_quit);
@@ -1779,8 +1823,14 @@ void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_edited_scene_root", "scene"), &SceneTree::set_edited_scene_root);
 	ClassDB::bind_method(D_METHOD("get_edited_scene_root"), &SceneTree::get_edited_scene_root);
 
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	ClassDB::bind_method(D_METHOD("set_pause", "enable"), &SceneTree::set_pause_fake_bind);
+	ClassDB::bind_method(D_METHOD("is_paused"), &SceneTree::is_paused_fake_bind);
+#else
 	ClassDB::bind_method(D_METHOD("set_pause", "enable"), &SceneTree::set_pause);
 	ClassDB::bind_method(D_METHOD("is_paused"), &SceneTree::is_paused);
+#endif
 
 	ClassDB::bind_method(D_METHOD("create_timer", "time_sec", "process_always", "process_in_physics", "ignore_time_scale"), &SceneTree::create_timer, DEFVAL(true), DEFVAL(false), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("create_tween"), &SceneTree::create_tween);

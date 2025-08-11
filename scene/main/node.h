@@ -684,7 +684,6 @@ public:
 	// E_EDITPLAY
 #ifdef TOOLS_ENABLED
 	void set_editplay(bool set_editplay);
-	bool is_editplay() const;
 	bool get_editplay() const;
 	bool find_editplay() const;
 #endif

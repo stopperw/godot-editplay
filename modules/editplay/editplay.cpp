@@ -3,12 +3,11 @@
 #include "editplay.h"
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
-#include "core/input/input_event.h"
+// #include "core/input/input_event.h"
 #include "core/input/input_map.h"
 #include "core/object/ref_counted.h"
 #include "core/os/memory.h"
 #include "scene/main/node.h"
-#include "scene/main/scene_tree.h"
 #include "scene/main/window.h"
 #include "scene/main/multiplayer_api.h"
 #include "scene/resources/packed_scene.h"
@@ -68,15 +67,17 @@ void EditPlay::init(Node *world_viewport, Node *root) {
 	}
 
 	EditorNode *editor = EditorNode::get_singleton();
+	playing = false;
 	ep_scene = editor->new_scene();
+	playing = true;
 	editor->set_edited_scene(world_viewport);
 
-	if (!initial_current_scene)
-		initial_current_scene = world_viewport->get_tree()->get_current_scene();
+	if (!editor_current_scene)
+		editor_current_scene = world_viewport->get_tree()->get_current_scene();
 	world_viewport->get_tree()->set_current_scene_unchecked(root);
 
 	viewport = world_viewport;
-	active_root = root;
+	current_scene = root;
 	set_playing(true);
 #endif
 }
@@ -108,19 +109,19 @@ void EditPlay::set_paused(bool is_paused) {
 #endif
 }
 
-void EditPlay::set_active_root(Node* root) {
-	active_root = root;
+void EditPlay::set_current_scene(Node* root) {
+	current_scene = root;
 }
 
 void EditPlay::ready() {
-	if (active_root == nullptr) {
+	if (current_scene == nullptr) {
 		return;
 	}
-	if (!active_root->is_inside_tree()) {
+	if (!current_scene->is_inside_tree()) {
 		return;
 	}
-	// active_root->notification(Node::NOTIFICATION_READY);
-	// for (Variant obj : get_all_children(active_root)) {
+	// current_scene->notification(Node::NOTIFICATION_READY);
+	// for (Variant obj : get_all_children(current_scene)) {
 	// 	Node* target = cast_to<Node>(obj.get_validated_object());
 	// 	if (target == nullptr) {
 	// 		continue;
@@ -130,19 +131,15 @@ void EditPlay::ready() {
 }
 
 void EditPlay::process(double delta) {
-	if (active_root == nullptr) {
+	if (current_scene == nullptr) {
 		return;
 	}
-	if (!active_root->is_inside_tree()) {
+	if (!current_scene->is_inside_tree()) {
 		return;
 	}
-	// if (!scene_tree) {
-	// 	return;
-	// }
-	// scene_tree->process(delta);
 
-	// active_root->notification(Node::NOTIFICATION_PROCESS);
-	// for (Variant obj : get_all_children(active_root)) {
+	// current_scene->notification(Node::NOTIFICATION_PROCESS);
+	// for (Variant obj : get_all_children(current_scene)) {
 	// 	Node* target = cast_to<Node>(obj.get_validated_object());
 	// 	if (target == nullptr) {
 	// 		continue;
@@ -152,14 +149,14 @@ void EditPlay::process(double delta) {
 }
 
 void EditPlay::input(Ref<InputEvent> event) {
-	if (active_root == nullptr) {
+	if (current_scene == nullptr) {
 		return;
 	}
-	if (!active_root->is_inside_tree()) {
+	if (!current_scene->is_inside_tree()) {
 		return;
 	}
-	// active_root->notification(Node::NOTIFICATION_PROCESS);
-	// for (Variant obj : get_all_children(active_root)) {
+	// current_scene->notification(Node::NOTIFICATION_PROCESS);
+	// for (Variant obj : get_all_children(current_scene)) {
 	// 	Node* target = cast_to<Node>(obj.get_validated_object());
 	// 	if (target == nullptr) {
 	// 		continue;
@@ -183,8 +180,8 @@ void EditPlay::engine_cleanup() {
 		api->set_multiplayer_peer(nullptr);
 	}
 
-	if (initial_current_scene)
-		viewport->get_tree()->set_current_scene_unchecked(initial_current_scene);
+	if (editor_current_scene)
+		viewport->get_tree()->set_current_scene_unchecked(editor_current_scene);
 
 	for (Variant obj : get_all_children(viewport)) {
 		Node *child = cast_to<Node>(obj.get_validated_object());
@@ -206,17 +203,13 @@ void EditPlay::engine_cleanup() {
 
 	created_actions.clear();
 #endif
-	active_root = nullptr;
+	current_scene = nullptr;
 	viewport = nullptr;
-	initial_current_scene = nullptr;
+	editor_current_scene = nullptr;
 	ep_scene = -1;
 	set_playing(false);
 	paused = false;
 	freeze_cache = false;
-}
-
-bool EditPlay::is_editplay() {
-	return playing && !paused;
 }
 
 void EditPlay::init_autoload(Node *world_viewport) {
@@ -226,7 +219,6 @@ void EditPlay::init_autoload(Node *world_viewport) {
 	}
 
 	// copied from engine's autoload init code
-
 	HashMap<StringName, ProjectSettings::AutoloadInfo> autoloads = ProjectSettings::get_singleton()->get_autoload_list();
 
 	//first pass, add the constants so they exist before any script is loaded
@@ -235,6 +227,7 @@ void EditPlay::init_autoload(Node *world_viewport) {
 
 		if (info.is_singleton) {
 			for (int i = 0; i < ScriptServer::get_language_count(); i++) {
+				ScriptServer::get_language(i)->add_named_global_constant(info.name, Variant());
 				ScriptServer::get_language(i)->add_global_constant(info.name, Variant());
 			}
 		}
@@ -283,6 +276,7 @@ void EditPlay::init_autoload(Node *world_viewport) {
 
 		if (info.is_singleton) {
 			for (int i = 0; i < ScriptServer::get_language_count(); i++) {
+				ScriptServer::get_language(i)->add_named_global_constant(info.name, n);
 				ScriptServer::get_language(i)->add_global_constant(info.name, n);
 			}
 		}
@@ -303,6 +297,7 @@ void EditPlay::deinit_autoload() {
 	HashMap<StringName, ProjectSettings::AutoloadInfo> autoloads = ProjectSettings::get_singleton()->get_autoload_list();
 
 	// removing created constants
+	// or not really, because editor loads some singletons too.
 	// for (const KeyValue<StringName, ProjectSettings::AutoloadInfo> &E : autoloads) {
 	// 	const ProjectSettings::AutoloadInfo &info = E.value;
 	//
@@ -338,12 +333,16 @@ Node* EditPlay::get_viewport() {
 	return viewport;
 }
 
-Node* EditPlay::get_active_root() {
-	return active_root;
+Node* EditPlay::get_current_scene() {
+	return current_scene;
 }
 
 bool EditPlay::get_playing() {
 	return playing;
+}
+
+bool EditPlay::is_paused() {
+	return paused;
 }
 
 TypedArray<Node> EditPlay::get_all_children(Node *node) const {
@@ -361,14 +360,13 @@ TypedArray<Node> EditPlay::get_all_children(Node *node) const {
 
 void EditPlay::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("trigger_build"), &EditPlay::trigger_build);
-	ClassDB::bind_method(D_METHOD("init", "world_viewport", "active_root"), &EditPlay::init);
+	ClassDB::bind_method(D_METHOD("init", "world_viewport", "current_scene"), &EditPlay::init);
 	ClassDB::bind_method(D_METHOD("set_playing", "is_playing"), &EditPlay::set_playing);
 	ClassDB::bind_method(D_METHOD("set_paused", "is_paused"), &EditPlay::set_paused);
 	ClassDB::bind_method(D_METHOD("ready"), &EditPlay::ready);
 	ClassDB::bind_method(D_METHOD("process", "delta"), &EditPlay::process);
 	ClassDB::bind_method(D_METHOD("input", "event"), &EditPlay::input);
 	ClassDB::bind_method(D_METHOD("engine_cleanup"), &EditPlay::engine_cleanup);
-	ClassDB::bind_method(D_METHOD("is_editplay"), &EditPlay::is_editplay);
 	ClassDB::bind_method(D_METHOD("init_autoload", "world_viewport"), &EditPlay::init_autoload);
 	ClassDB::bind_method(D_METHOD("deinit_autoload"), &EditPlay::deinit_autoload);
 	ClassDB::bind_method(D_METHOD("fix_ownership", "node", "target_owner"), &EditPlay::fix_ownership);
@@ -376,16 +374,16 @@ void EditPlay::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_freeze_cache", "is_freezed"), &EditPlay::set_freeze_cache);
 
 	ClassDB::bind_method(D_METHOD("get_viewport"), &EditPlay::get_viewport);
-	ClassDB::bind_method(D_METHOD("get_active_root"), &EditPlay::get_active_root);
+	ClassDB::bind_method(D_METHOD("get_current_scene"), &EditPlay::get_current_scene);
 	ClassDB::bind_method(D_METHOD("get_playing"), &EditPlay::get_playing);
+	ClassDB::bind_method(D_METHOD("is_paused"), &EditPlay::is_paused);
 }
 
 EditPlay::EditPlay() {
 	singleton = this;
-	scene_tree = nullptr;
-	active_root = nullptr;
 	viewport = nullptr;
-	initial_current_scene = nullptr;
+	current_scene = nullptr;
+	editor_current_scene = nullptr;
 	ep_scene = -1;
 	playing = false;
 	paused = false;
