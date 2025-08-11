@@ -44,6 +44,7 @@
 #include "core/templates/rb_set.h"
 #include "core/variant/variant_parser.h"
 #include "servers/rendering_server.h"
+// E_EDITPLAY
 #include "modules/editplay/editplay.h"
 
 #ifdef DEBUG_LOAD_THREADED
