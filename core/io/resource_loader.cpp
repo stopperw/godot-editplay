@@ -572,8 +572,8 @@ Ref<ResourceLoader::LoadToken> ResourceLoader::_load_start(const String &p_path,
 	// E_EDITPLAY
 #ifdef TOOLS_ENABLED
 	// This makes so that resources don't change in other scenes
-	if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_cache_freezed())
-		p_cache_mode = ResourceFormatLoader::CACHE_MODE_IGNORE;
+	// if (EditPlay::get_singleton() && EditPlay::get_singleton()->is_cache_freezed())
+	// 	p_cache_mode = ResourceFormatLoader::CACHE_MODE_IGNORE;
 #endif
 	bool ignoring_cache = p_cache_mode == ResourceFormatLoader::CACHE_MODE_IGNORE || p_cache_mode == ResourceFormatLoader::CACHE_MODE_IGNORE_DEEP;
 

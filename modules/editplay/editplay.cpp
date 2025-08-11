@@ -7,6 +7,7 @@
 #include "core/input/input_map.h"
 #include "core/object/ref_counted.h"
 #include "core/os/memory.h"
+#include "core/io/resource.h"
 #include "scene/main/node.h"
 #include "scene/main/window.h"
 #include "scene/main/multiplayer_api.h"
@@ -326,6 +327,10 @@ bool EditPlay::is_cache_freezed() {
 }
 
 void EditPlay::set_freeze_cache(bool is_freezed) {
+#ifdef TOOLS_ENABLED
+	if (is_freezed)
+		ResourceCache::clear();
+#endif
 	freeze_cache = is_freezed;
 }
 
