@@ -1906,10 +1906,25 @@ Node *Node::get_node_or_null(const NodePath &p_path) const {
 	if (!p_path.is_absolute()) {
 		current = const_cast<Node *>(this); //start from this
 	} else {
+		// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+		if (get_editplay()) {
+			root = const_cast<Node *>(this);
+			while (root->data.parent && root->data.parent->get_editplay()) {
+				root = root->data.parent; //start from root
+			}
+		} else {
+			root = const_cast<Node *>(this);
+			while (root->data.parent) {
+				root = root->data.parent; //start from root
+			}
+		}
+#else
 		root = const_cast<Node *>(this);
 		while (root->data.parent) {
 			root = root->data.parent; //start from root
 		}
+#endif
 	}
 
 	for (int i = 0; i < p_path.get_name_count(); i++) {
