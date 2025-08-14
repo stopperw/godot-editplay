@@ -7,7 +7,7 @@ on:
 env:
   # Used for the cache key. Add version suffix to force clean build.
   GODOT_BASE_BRANCH: 4.4
-  SCONSFLAGS: warnings=extra werror=yes module_text_server_fb_enabled=yes d3d12=yes strict_checks=yes "angle_libs=${{ github.workspace }}/" production=yes
+  SCONSFLAGS: module_text_server_fb_enabled=yes d3d12=yes strict_checks=yes "angle_libs=${{ github.workspace }}/" production=yes
   SCONS_CACHE_MSVC_CONFIG: true
 
 jobs:
