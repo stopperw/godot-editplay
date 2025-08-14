@@ -40,7 +40,7 @@ jobs:
             cache-name: linux-template
             target: template_release
             bin: ./bin/godot.linuxbsd.template_release.x86_64.mono
-            # tests: true
+            tests: false
             artifact: true
             cache-limit: 1
 
@@ -71,7 +71,7 @@ jobs:
             sconsflags: module_mono_enabled=yes
             bin: ./bin/godot.linuxbsd.template_release.x86_64.mono
             build-mono: false
-            # tests: true
+            tests: false
             artifact: true
             cache-limit: 1
 

@@ -23,19 +23,21 @@ jobs:
           - name: Editor (target=editor, tests=yes)
             cache-name: windows-editor
             target: editor
-            # tests: true
+            tests: true
             # Skip debug symbols, they're way too big with MSVC.
             sconsflags: debug_symbols=no vsproj=yes vsproj_gen_only=no
             bin: ./bin/godot.windows.editor.x86_64.exe
+            build-mono: false
             compiler: msvc
             cache-limit: 2
 
           - name: Template, release (target=template_release, tests=yes)
             cache-name: windows-template-release
             target: template_release
-            # tests: true
+            tests: false
             sconsflags: debug_symbols=no
             bin: ./bin/godot.windows.template_release.x86_64.exe
+            build-mono: false
             compiler: msvc
             cache-limit: 2
 
@@ -51,7 +53,7 @@ jobs:
           - name: Editor w/ Mono (target=editor, tests=yes)
             cache-name: windows-editor-mono
             target: editor
-            # tests: true
+            tests: false
             # Skip debug symbols, they're way too big with MSVC.
             sconsflags: debug_symbols=no vsproj=yes vsproj_gen_only=no module_mono_enabled=yes
             bin: ./bin/godot.windows.editor.x86_64.mono.exe
@@ -62,7 +64,7 @@ jobs:
           - name: Template w/ Mono, release (target=template_release, tests=yes)
             cache-name: windows-template-mono-release
             target: template_release
-            # tests: true
+            tests: false
             sconsflags: debug_symbols=no module_mono_enabled=yes
             bin: ./bin/godot.windows.template_release.x86_64.mono.exe
             build-mono: false

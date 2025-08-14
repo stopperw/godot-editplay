@@ -20,17 +20,19 @@ jobs:
           - name: Editor (target=editor, tests=yes)
             cache-name: macos-editor
             target: editor
-            # tests: true
+            tests: true
             sconsflags: debug_symbols=no
             bin: ./bin/godot.macos.editor.universal
+            build-mono: false
             cache-limit: 1
 
           - name: Template, release (target=template_release, tests=yes)
             cache-name: macos-template-release
             target: template_release
-            # tests: true
+            tests: false
             sconsflags: debug_symbols=no
             bin: ./bin/godot.macos.template_release.universal
+            build-mono: false
             cache-limit: 1
 
           # - name: Template, debug (target=template_debug, tests=yes)
@@ -44,7 +46,7 @@ jobs:
           - name: Editor w/ Mono (target=editor, tests=yes)
             cache-name: macos-editor-mono
             target: editor
-            # tests: true
+            tests: false
             sconsflags: debug_symbols=no module_mono_enabled=yes
             bin: ./bin/godot.macos.editor.universal.mono
             build-mono: true
@@ -53,7 +55,7 @@ jobs:
           - name: Template w/ Mono, release (target=template_release, tests=yes)
             cache-name: macos-template-mono-release
             target: template_release
-            # tests: true
+            tests: false
             sconsflags: debug_symbols=no module_mono_enabled=yes
             bin: ./bin/godot.macos.template_release.universal.mono
             build-mono: false
