@@ -1,4 +1,4 @@
-name: 🍎 macOS Builds
+name: 🍎 macOS Production Builds
 on:
   workflow_call:
 
@@ -6,7 +6,7 @@ on:
 env:
   # Used for the cache key. Add version suffix to force clean build.
   GODOT_BASE_BRANCH: 4.4
-  SCONSFLAGS: verbose=yes warnings=extra werror=yes module_text_server_fb_enabled=yes strict_checks=yes
+  SCONSFLAGS: warnings=extra werror=yes module_text_server_fb_enabled=yes strict_checks=yes production=yes
 
 jobs:
   build-macos:
@@ -20,17 +20,53 @@ jobs:
           - name: Editor (target=editor, tests=yes)
             cache-name: macos-editor
             target: editor
-            tests: true
+            # tests: true
+            sconsflags: debug_symbols=no
             bin: ./bin/godot.macos.editor.universal
             cache-limit: 1
 
-          - name: Template (target=template_release, tests=yes)
-            cache-name: macos-template
+          - name: Template, release (target=template_release, tests=yes)
+            cache-name: macos-template-release
             target: template_release
-            tests: true
+            # tests: true
             sconsflags: debug_symbols=no
             bin: ./bin/godot.macos.template_release.universal
             cache-limit: 1
+
+          # - name: Template, debug (target=template_debug, tests=yes)
+          #   cache-name: macos-template-debug
+          #   target: template_debug
+          #   tests: true
+          #   sconsflags: debug_symbols=no
+          #   bin: ./bin/godot.macos.template_debug.universal
+          #   cache-limit: 1
+
+          - name: Editor w/ Mono (target=editor, tests=yes)
+            cache-name: macos-editor-mono
+            target: editor
+            # tests: true
+            sconsflags: debug_symbols=no module_mono_enabled=yes
+            bin: ./bin/godot.macos.editor.universal.mono
+            build-mono: true
+            cache-limit: 1
+
+          - name: Template w/ Mono, release (target=template_release, tests=yes)
+            cache-name: macos-template-mono-release
+            target: template_release
+            # tests: true
+            sconsflags: debug_symbols=no module_mono_enabled=yes
+            bin: ./bin/godot.macos.template_release.universal.mono
+            build-mono: false
+            cache-limit: 1
+
+          # - name: Template w/ Mono, debug (target=template_debug, tests=yes)
+          #   cache-name: macos-template-mono-debug
+          #   target: template_debug
+          #   tests: true
+          #   sconsflags: debug_symbols=no module_mono_enabled=yes
+          #   bin: ./bin/godot.macos.template_debug.universal.mono
+          #   build-mono: false
+          #   cache-limit: 1
 
     steps:
       - name: Checkout
@@ -46,6 +82,13 @@ jobs:
 
       - name: Setup Python and SCons
         uses: ./.github/actions/godot-deps
+
+      - name: Setup older .NET SDK as baseline
+        if: matrix.build-mono
+        uses: actions/setup-dotnet@v4
+        with:
+          # Targeting the oldest version we want to support to ensure it still builds.
+          dotnet-version: 8.0.100
 
       - name: Setup Vulkan SDK
         run: |
@@ -81,6 +124,17 @@ jobs:
           rm ./bin/godot.macos.${{ matrix.target }}.x86_64 ./bin/godot.macos.${{ matrix.target }}.arm64
           strip bin/godot.*
           chmod +x bin/godot.*
+
+      - name: Generate C# glue
+        if: matrix.build-mono
+        run: |
+          ${{ matrix.bin }} --headless --generate-mono-glue ./modules/mono/glue
+
+      - name: Build .NET solutions
+        if: matrix.build-mono
+        run: |
+          dotnet --info
+          ./modules/mono/build_scripts/build_assemblies.py --godot-output-dir=./bin --godot-platform=macos --werror
 
       - name: Upload artifact
         uses: ./.github/actions/upload-artifact
