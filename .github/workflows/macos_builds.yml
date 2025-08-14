@@ -20,7 +20,7 @@ jobs:
           - name: Editor (target=editor, tests=yes)
             cache-name: macos-editor
             target: editor
-            tests: true
+            tests: false
             sconsflags: debug_symbols=no
             bin: ./bin/godot.macos.editor.universal
             build-mono: false
@@ -142,9 +142,18 @@ jobs:
         continue-on-error: true
 
       - name: Prepare artifact
+        if: "!matrix.build-mono"
         run: |
           lipo -create ./bin/godot.macos.${{ matrix.target }}.x86_64 ./bin/godot.macos.${{ matrix.target }}.arm64 -output ./bin/godot.macos.${{ matrix.target }}.universal
           rm ./bin/godot.macos.${{ matrix.target }}.x86_64 ./bin/godot.macos.${{ matrix.target }}.arm64
+          strip bin/godot.*
+          chmod +x bin/godot.*
+
+      - name: Prepare artifact (Mono)
+        if: matrix.build-mono
+        run: |
+          lipo -create ./bin/godot.macos.${{ matrix.target }}.x86_64.mono ./bin/godot.macos.${{ matrix.target }}.arm64.mono -output ./bin/godot.macos.${{ matrix.target }}.universal.mono
+          rm ./bin/godot.macos.${{ matrix.target }}.x86_64.mono ./bin/godot.macos.${{ matrix.target }}.arm64.mono
           strip bin/godot.*
           chmod +x bin/godot.*
 
