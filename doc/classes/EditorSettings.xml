@@ -656,7 +656,7 @@
 			If [code]true[/code], EditPlay will make all instanced scene show all children. Can cause decreased performance and lag spikes, so use with care.
 		</member>
 		<member name="editplay/play_current_scene" type="bool" setter="" getter="">
-			If [code]true[/code], EditPlay will start currently open scene instead of project's [member application/run/main_scene].
+			If [code]true[/code], EditPlay will start currently open scene instead of project's main scene.
 		</member>
 		<member name="editplay/use_project_settings_for_viewport" type="bool" setter="" getter="">
 			If [code]true[/code], EditPlay will configure it's SubViewport like current project settings.
