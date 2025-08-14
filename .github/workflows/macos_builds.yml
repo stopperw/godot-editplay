@@ -120,7 +120,7 @@ jobs:
       - name: Compilation (x86_64)
         uses: ./.github/actions/godot-build
         with:
-          sconsflags: ${{ env.SCONSFLAGS }} arch=x86_64
+          sconsflags: ${{ env.SCONSFLAGS }} ${{ matrix.sconsflags }} arch=x86_64 vulkan=${{ steps.vulkan-sdk.outputs.VULKAN_ENABLED }}
           platform: macos
           target: ${{ matrix.target }}
           tests: ${{ matrix.tests }}
@@ -129,7 +129,7 @@ jobs:
       - name: Compilation (arm64)
         uses: ./.github/actions/godot-build
         with:
-          sconsflags: ${{ env.SCONSFLAGS }} arch=arm64
+          sconsflags: ${{ env.SCONSFLAGS }} ${{ matrix.sconsflags }} arch=arm64 vulkan=${{ steps.vulkan-sdk.outputs.VULKAN_ENABLED }}
           platform: macos
           target: ${{ matrix.target }}
           tests: ${{ matrix.tests }}
