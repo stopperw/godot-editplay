@@ -6,7 +6,7 @@ on:
 env:
   # Used for the cache key. Add version suffix to force clean build.
   GODOT_BASE_BRANCH: 4.4
-  SCONSFLAGS: module_text_server_fb_enabled=yes strict_checks=yes production=yes
+  SCONS_FLAGS: module_text_server_fb_enabled=yes strict_checks=yes production=yes
 
 jobs:
   build-macos:
@@ -20,59 +20,47 @@ jobs:
           - name: Editor (target=editor, tests=yes)
             cache-name: macos-editor
             target: editor
-            tests: false
-            sconsflags: debug_symbols=no
+            scons-flags: debug_symbols=no
             bin: ./bin/godot.macos.editor.universal
             build-mono: false
             artifact-mono: false
-            cache-limit: 1
 
           - name: Template, release (target=template_release, tests=yes)
             cache-name: macos-template-release
             target: template_release
-            tests: false
-            sconsflags: debug_symbols=no
+            scons-flags: debug_symbols=no
             bin: ./bin/godot.macos.template_release.universal
             build-mono: false
             artifact-mono: false
-            cache-limit: 1
 
           # - name: Template, debug (target=template_debug, tests=yes)
           #   cache-name: macos-template-debug
           #   target: template_debug
-          #   tests: true
-          #   sconsflags: debug_symbols=no
+          #   scons-flags: debug_symbols=no
           #   bin: ./bin/godot.macos.template_debug.universal
-          #   cache-limit: 1
 
           - name: Editor w/ Mono (target=editor, tests=yes)
             cache-name: macos-editor-mono
             target: editor
-            tests: false
-            sconsflags: debug_symbols=no module_mono_enabled=yes
+            scons-flags: debug_symbols=no module_mono_enabled=yes
             bin: ./bin/godot.macos.editor.universal.mono
             build-mono: true
             artifact-mono: true
-            cache-limit: 1
 
           - name: Template w/ Mono, release (target=template_release, tests=yes)
             cache-name: macos-template-mono-release
             target: template_release
-            tests: false
-            sconsflags: debug_symbols=no module_mono_enabled=yes
+            scons-flags: debug_symbols=no module_mono_enabled=yes
             bin: ./bin/godot.macos.template_release.universal.mono
             build-mono: false
             artifact-mono: true
-            cache-limit: 1
 
           # - name: Template w/ Mono, debug (target=template_debug, tests=yes)
           #   cache-name: macos-template-mono-debug
           #   target: template_debug
-          #   tests: true
-          #   sconsflags: debug_symbols=no module_mono_enabled=yes
+          #   scons-flags: debug_symbols=no module_mono_enabled=yes
           #   bin: ./bin/godot.macos.template_debug.universal.mono
           #   build-mono: false
-          #   cache-limit: 1
 
     steps:
       - name: Checkout
@@ -124,20 +112,16 @@ jobs:
       - name: Compilation (x86_64)
         uses: ./.github/actions/godot-build
         with:
-          sconsflags: ${{ env.SCONSFLAGS }} ${{ matrix.sconsflags }} arch=x86_64 vulkan=${{ steps.vulkan-sdk.outputs.VULKAN_ENABLED }}
+          scons-flags: ${{ env.SCONS_FLAGS }} ${{ matrix.scons-flags }} arch=x86_64 vulkan=${{ steps.vulkan-sdk.outputs.VULKAN_ENABLED }}
           platform: macos
           target: ${{ matrix.target }}
-          tests: ${{ matrix.tests }}
-          scons-cache-limit: 0 # Only cap on second run to avoid purging unnecessarily
 
       - name: Compilation (arm64)
         uses: ./.github/actions/godot-build
         with:
-          sconsflags: ${{ env.SCONSFLAGS }} ${{ matrix.sconsflags }} arch=arm64 vulkan=${{ steps.vulkan-sdk.outputs.VULKAN_ENABLED }}
+          scons-flags: ${{ env.SCONS_FLAGS }} ${{ matrix.scons-flags }} arch=arm64 vulkan=${{ steps.vulkan-sdk.outputs.VULKAN_ENABLED }}
           platform: macos
           target: ${{ matrix.target }}
-          tests: ${{ matrix.tests }}
-          scons-cache-limit: ${{ matrix.cache-limit }}
 
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save
@@ -178,7 +162,6 @@ jobs:
           name: ${{ matrix.cache-name }}
 
       - name: Unit tests
-        if: matrix.tests
         run: |
           ${{ matrix.bin }} --version
           ${{ matrix.bin }} --help

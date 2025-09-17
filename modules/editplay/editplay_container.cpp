@@ -169,7 +169,7 @@ void EditPlayContainer::_propagate_nonpositional_event(const Ref<InputEvent> &p_
 	if (!target_node.get_validated_object()) {
 		return;
 	}
-	SubViewport* viewport = Object::cast_to<SubViewport>(target_node);
+	Viewport* viewport = Object::cast_to<Viewport>(target_node);
 	if (!viewport || !viewport->is_inside_tree()) {
 		return;
 	}

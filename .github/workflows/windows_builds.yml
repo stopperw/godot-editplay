@@ -7,7 +7,7 @@ on:
 env:
   # Used for the cache key. Add version suffix to force clean build.
   GODOT_BASE_BRANCH: 4.4
-  SCONSFLAGS: module_text_server_fb_enabled=yes d3d12=yes strict_checks=yes "angle_libs=${{ github.workspace }}/" production=yes
+  SCONS_FLAGS: module_text_server_fb_enabled=yes d3d12=yes strict_checks=yes "angle_libs=${{ github.workspace }}/" production=yes
   SCONS_CACHE_MSVC_CONFIG: true
 
 jobs:
@@ -23,63 +23,43 @@ jobs:
           - name: Editor (target=editor, tests=yes)
             cache-name: windows-editor
             target: editor
-            tests: false
             # Skip debug symbols, they're way too big with MSVC.
-            sconsflags: debug_symbols=no vsproj=yes vsproj_gen_only=no
+            scons-flags: debug_symbols=no vsproj=yes vsproj_gen_only=no
             bin: ./bin/godot.windows.editor.x86_64.exe
             build-mono: false
             compiler: msvc
-            cache-limit: 2
 
           - name: Template, release (target=template_release, tests=yes)
             cache-name: windows-template-release
             target: template_release
-            tests: false
-            sconsflags: debug_symbols=no
+            scons-flags: debug_symbols=no
             bin: ./bin/godot.windows.template_release.x86_64.exe
             build-mono: false
             compiler: msvc
-            cache-limit: 2
 
           # - name: Template, debug (target=template_debug, tests=yes)
           #   cache-name: windows-template-debug
           #   target: template_debug
-          #   tests: true
-          #   sconsflags: debug_symbols=no
+          #   scons-flags: debug_symbols=no
           #   bin: ./bin/godot.windows.template_debug.x86_64.exe
           #   compiler: msvc
-          #   cache-limit: 2
 
           - name: Editor w/ Mono (target=editor, tests=yes)
             cache-name: windows-editor-mono
             target: editor
-            tests: false
             # Skip debug symbols, they're way too big with MSVC.
-            sconsflags: debug_symbols=no vsproj=yes vsproj_gen_only=no module_mono_enabled=yes
+            scons-flags: debug_symbols=no vsproj=yes vsproj_gen_only=no module_mono_enabled=yes
             bin: ./bin/godot.windows.editor.x86_64.mono.exe
             build-mono: true
             compiler: msvc
-            cache-limit: 2
 
           - name: Template w/ Mono, release (target=template_release, tests=yes)
             cache-name: windows-template-mono-release
             target: template_release
-            tests: false
-            sconsflags: debug_symbols=no module_mono_enabled=yes
+            scons-flags: debug_symbols=no module_mono_enabled=yes
             bin: ./bin/godot.windows.template_release.x86_64.mono.exe
             build-mono: false
             compiler: msvc
-            cache-limit: 2
-
-          # - name: Template w/ Mono, debug (target=template_debug, tests=yes)
-          #   cache-name: windows-template-mono-debug
-          #   target: template_debug
-          #   tests: true
-          #   sconsflags: debug_symbols=no module_mono_enabled=yes
-          #   bin: ./bin/godot.windows.template_debug.x86_64.mono.exe
-          #   build-mono: false
-          #   compiler: msvc
-          #   cache-limit: 2
 
     steps:
       - name: Checkout
@@ -120,11 +100,9 @@ jobs:
       - name: Compilation
         uses: ./.github/actions/godot-build
         with:
-          sconsflags: ${{ env.SCONSFLAGS }} ${{ matrix.sconsflags }}
+          scons-flags: ${{ env.SCONS_FLAGS }} ${{ matrix.scons-flags }}
           platform: windows
           target: ${{ matrix.target }}
-          tests: ${{ matrix.tests }}
-          scons-cache-limit: ${{ matrix.cache-limit }}
 
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save
@@ -155,7 +133,6 @@ jobs:
           name: ${{ matrix.cache-name }}
 
       - name: Unit tests
-        if: matrix.tests
         run: |
           ${{ matrix.bin }} --version
           ${{ matrix.bin }} --help
