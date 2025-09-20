@@ -198,7 +198,7 @@ void EditPlay::engine_cleanup() {
 	EditorData &data = editor->get_editor_data();
 	for (int i = 0; i < data.get_edited_scene_count(); i++) {
 		EditorData::EditedScene scene = data.get_edited_scenes()[i];
-		if (scene.root == viewport) {
+		if (scene.root == viewport && !scene_close_stop) {
 			editor->close_scene(i);
 		}
 	}
@@ -212,6 +212,7 @@ void EditPlay::engine_cleanup() {
 	set_playing(false);
 	paused = false;
 	freeze_cache = false;
+	scene_close_stop = false;
 }
 
 void EditPlay::init_autoload(Node *world_viewport) {
@@ -358,6 +359,11 @@ TypedArray<Node> EditPlay::get_all_children(Node *node) const {
 	return children;
 }
 
+void EditPlay::trigger_scene_close_stop() {
+	scene_close_stop = true;
+	emit_signal(SNAME("stop_triggered"));
+}
+
 void EditPlay::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("trigger_build"), &EditPlay::trigger_build);
 	ClassDB::bind_method(D_METHOD("init", "world_viewport", "current_scene"), &EditPlay::init);
@@ -376,6 +382,8 @@ void EditPlay::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_current_scene"), &EditPlay::get_current_scene);
 	ClassDB::bind_method(D_METHOD("get_playing"), &EditPlay::get_playing);
 	ClassDB::bind_method(D_METHOD("is_paused"), &EditPlay::is_paused);
+
+	ADD_SIGNAL(MethodInfo("stop_triggered"));
 }
 
 EditPlay::EditPlay() {
@@ -387,6 +395,7 @@ EditPlay::EditPlay() {
 	playing = false;
 	paused = false;
 	freeze_cache = false;
+	scene_close_stop = false;
 }
 
 EditPlay::~EditPlay() {

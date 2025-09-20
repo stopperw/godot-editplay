@@ -97,4 +97,10 @@
 			</description>
 		</method>
 	</methods>
+	<signals>
+		<signal name="stop_triggered">
+			<description>
+			</description>
+		</signal>
+	</signals>
 </class>

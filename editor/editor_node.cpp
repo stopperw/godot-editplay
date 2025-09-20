@@ -6250,6 +6250,7 @@ void EditorNode::_scene_tab_closed(int p_tab) {
 	// E_EDITPLAY: Don't show the save dialog for EditPlay scene tab
 #ifdef TOOLS_ENABLED
 	if (scene->get_editplay()) {
+		EditPlay::get_singleton()->trigger_scene_close_stop();
 		_discard_changes();
 		return;
 	}

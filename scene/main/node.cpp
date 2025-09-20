@@ -353,9 +353,31 @@ void Node::_propagate_enter_tree() {
 		E.value.group = data.tree->add_to_group(E.key, this);
 	}
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !data.editplay) {
+		Ref<Script> scr = get_script();
+		if (!scr->is_tool()) {
+			// shouldn't run any user code
+			notification(NOTIFICATION_ENTER_TREE);
+		} else {
+			// should run user code
+			notification(NOTIFICATION_ENTER_TREE);
+
+			GDVIRTUAL_CALL(_enter_tree);
+		}
+	} else {
+		// should run user code
+		notification(NOTIFICATION_ENTER_TREE);
+
+		GDVIRTUAL_CALL(_enter_tree);
+	}
+#else
+	// should run user code, engine'll figure it out
 	notification(NOTIFICATION_ENTER_TREE);
 
 	GDVIRTUAL_CALL(_enter_tree);
+#endif
 
 	emit_signal(SceneStringName(tree_entered));
 
@@ -420,7 +442,24 @@ void Node::_propagate_exit_tree() {
 
 	data.blocked--;
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !data.editplay) {
+		Ref<Script> scr = get_script();
+		if (!scr->is_tool()) {
+			// shouldn't run any user code
+		} else {
+			// should run user code
+			GDVIRTUAL_CALL(_exit_tree);
+		}
+	} else {
+		// should run user code
+		GDVIRTUAL_CALL(_exit_tree);
+	}
+#else
+	// should run user code, engine'll figure it out
 	GDVIRTUAL_CALL(_exit_tree);
+#endif
 
 	emit_signal(SceneStringName(tree_exiting));
 

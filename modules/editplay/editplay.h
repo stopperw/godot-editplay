@@ -19,6 +19,7 @@ class EditPlay : public RefCounted {
 	bool playing;
 	bool paused;
 	bool freeze_cache;
+	bool scene_close_stop;
 
 	Vector<String> created_actions;
 
@@ -43,6 +44,7 @@ public:
 	void deinit_autoload();
 	void fix_ownership(Node* node, Node *target_owner) const;
 	void zap_cache();
+	void trigger_scene_close_stop();
 
 	Node* get_viewport();
 	Node* get_current_scene();
