@@ -91,10 +91,19 @@ void AudioStreamPlayerInternal::ensure_playback_limit() {
 void AudioStreamPlayerInternal::notification(int p_what) {
 	switch (p_what) {
 		case Node::NOTIFICATION_ENTER_TREE: {
+			// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+			if (autoplay && (!Engine::get_singleton()->is_editor_hint() || node->get_editplay())) {
+#else
 			if (autoplay && !Engine::get_singleton()->is_editor_hint()) {
+#endif
 				play_callable.call(0.0);
 			}
+#ifdef TOOLS_ENABLED
+			set_stream_paused(!node->can_process_editplay());
+#else
 			set_stream_paused(!node->can_process());
+#endif
 		} break;
 
 		case Node::NOTIFICATION_EXIT_TREE: {

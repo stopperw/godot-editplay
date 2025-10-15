@@ -82,6 +82,14 @@ void EditorSceneTabs::_notification(int p_what) {
 void EditorSceneTabs::_scene_tab_changed(int p_tab) {
 	tab_preview_panel->hide();
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		print_line("[EditPlay] Changing editor scenes is disabled while EditPlay session is active.");
+		return;
+	}
+#endif
+
 	emit_signal("tab_changed", p_tab);
 }
 
@@ -306,7 +314,17 @@ void EditorSceneTabs::_update_tab_titles() {
 		scene_tabs->set_tab_icon(i, icon);
 
 		bool unsaved = EditorUndoRedoManager::get_singleton()->is_history_unsaved(EditorNode::get_editor_data().get_scene_history_id(i));
+		// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+		if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing() && EditorNode::get_editor_data().get_edited_scene_root(i)->get_editplay()) {
+			unsaved = false;
+			scene_tabs->set_tab_title(i, "EditPlay");
+		} else {
+			scene_tabs->set_tab_title(i, disambiguated_scene_names[i] + (unsaved ? "(*)" : ""));
+		}
+#else
 		scene_tabs->set_tab_title(i, disambiguated_scene_names[i] + (unsaved ? "(*)" : ""));
+#endif
 
 		if (NativeMenu::get_singleton()->has_feature(NativeMenu::FEATURE_GLOBAL_MENU)) {
 			RID dock_rid = NativeMenu::get_singleton()->get_system_menu(NativeMenu::DOCK_MENU_ID);

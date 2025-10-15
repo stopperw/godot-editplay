@@ -4156,7 +4156,12 @@ void Viewport::set_embedding_subwindows(bool p_embed) {
 
 bool Viewport::is_embedding_subwindows() const {
 	ERR_READ_THREAD_GUARD_V(false);
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	return gui.embed_subwindows_hint || (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing());
+#else
 	return gui.embed_subwindows_hint;
+#endif
 }
 
 TypedArray<Window> Viewport::get_embedded_subwindows() const {

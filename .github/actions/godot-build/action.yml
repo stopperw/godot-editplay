@@ -33,9 +33,9 @@ runs:
 
         if [ "${{ github.event.number }}" != "" ]; then
           # Set build identifier with pull request number if available. This is displayed throughout the editor.
-          export BUILD_NAME="gh-${{ github.event.number }}"
+          export BUILD_NAME="epgh-${{ github.event.number }}"
         else
-          export BUILD_NAME="gh"
+          export BUILD_NAME="epgh"
         fi
 
         scons platform=${{ inputs.platform }} target=${{ inputs.target }} ${{ inputs.scons-flags }} "cache_path=${{ inputs.scons-cache }}" redirect_build_objects=no

@@ -205,10 +205,16 @@ class ResourceCache {
 	static RWLock path_cache_lock;
 #endif // TOOLS_ENABLED
 	friend void unregister_core_types();
+	// E_EDITPLAY: make the clear function public for us to use when starting
+	// an EditPlay session (to break the links to scene resources)
 	static void clear();
 	friend void register_core_types();
 
 public:
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	static void editplay_clear();
+#endif
 	static bool has(const String &p_path);
 	static Ref<Resource> get_ref(const String &p_path);
 	static void get_cached_resources(List<Ref<Resource>> *p_resources);

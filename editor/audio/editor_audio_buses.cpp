@@ -1278,6 +1278,10 @@ void EditorAudioBuses::_drop_at_index(int p_bus, int p_index) {
 }
 
 void EditorAudioBuses::_server_save() {
+	// E_EDITPLAY
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing())
+		return;
+
 	Ref<AudioBusLayout> state = AudioServer::get_singleton()->generate_bus_layout();
 	if (edited_path.is_empty()) {
 		ResourceSaver::save(state, "res://default_bus_layout.tres");

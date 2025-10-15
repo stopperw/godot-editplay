@@ -814,6 +814,13 @@ void ResourceCache::clear() {
 	resources.clear();
 }
 
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+void ResourceCache::editplay_clear() {
+	resources.clear();
+}
+#endif
+
 bool ResourceCache::has(const String &p_path) {
 	Resource **res = nullptr;
 
