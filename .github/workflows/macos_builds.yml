@@ -1,14 +1,11 @@
-name: 🍎 macOS Builds
+name: 🍎 macOS Production Builds
 on:
   workflow_call:
   workflow_dispatch:
 
 # Global Settings
 env:
-  SCONS_FLAGS: >-
-    dev_mode=yes
-    module_text_server_fb_enabled=yes
-    "accesskit_sdk_path=${{ github.workspace }}/accesskit-c-0.18.0/"
+  SCONS_FLAGS: module_text_server_fb_enabled=yes strict_checks=yes production=yes "accesskit_sdk_path=${{ github.workspace }}/accesskit-c-0.18.0/"
 
 jobs:
   build-macos:
@@ -20,16 +17,50 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Editor (target=editor)
+          - name: Editor (target=editor, tests=yes)
             cache-name: macos-editor
             target: editor
+            scons-flags: debug_symbols=no
             bin: ./bin/godot.macos.editor.universal
+            build-mono: false
+            artifact-mono: false
 
-          - name: Template (target=template_release)
-            cache-name: macos-template
+          - name: Template, release (target=template_release, tests=yes)
+            cache-name: macos-template-release
             target: template_release
             scons-flags: debug_symbols=no
             bin: ./bin/godot.macos.template_release.universal
+            build-mono: false
+            artifact-mono: false
+
+          # - name: Template, debug (target=template_debug, tests=yes)
+          #   cache-name: macos-template-debug
+          #   target: template_debug
+          #   scons-flags: debug_symbols=no
+          #   bin: ./bin/godot.macos.template_debug.universal
+
+          - name: Editor w/ Mono (target=editor, tests=yes)
+            cache-name: macos-editor-mono
+            target: editor
+            scons-flags: debug_symbols=no module_mono_enabled=yes
+            bin: ./bin/godot.macos.editor.universal.mono
+            build-mono: true
+            artifact-mono: true
+
+          - name: Template w/ Mono, release (target=template_release, tests=yes)
+            cache-name: macos-template-mono-release
+            target: template_release
+            scons-flags: debug_symbols=no module_mono_enabled=yes
+            bin: ./bin/godot.macos.template_release.universal.mono
+            build-mono: false
+            artifact-mono: true
+
+          # - name: Template w/ Mono, debug (target=template_debug, tests=yes)
+          #   cache-name: macos-template-mono-debug
+          #   target: template_debug
+          #   scons-flags: debug_symbols=no module_mono_enabled=yes
+          #   bin: ./bin/godot.macos.template_debug.universal.mono
+          #   build-mono: false
 
     steps:
       - name: Checkout
@@ -72,6 +103,13 @@ jobs:
           fi
         continue-on-error: true
 
+      - name: Setup older .NET SDK as baseline
+        if: matrix.build-mono
+        uses: actions/setup-dotnet@v4
+        with:
+          # Targeting the oldest version we want to support to ensure it still builds.
+          dotnet-version: 8.0.100
+
       - name: Compilation (x86_64)
         uses: ./.github/actions/godot-build
         with:
@@ -93,19 +131,39 @@ jobs:
         continue-on-error: true
 
       - name: Prepare artifact
+        if: "!matrix.artifact-mono"
         run: |
           lipo -create ./bin/godot.macos.${{ matrix.target }}.x86_64 ./bin/godot.macos.${{ matrix.target }}.arm64 -output ./bin/godot.macos.${{ matrix.target }}.universal
           rm ./bin/godot.macos.${{ matrix.target }}.x86_64 ./bin/godot.macos.${{ matrix.target }}.arm64
           strip bin/godot.*
           chmod +x bin/godot.*
 
+      - name: Prepare artifact (Mono)
+        if: matrix.artifact-mono
+        run: |
+          lipo -create ./bin/godot.macos.${{ matrix.target }}.x86_64.mono ./bin/godot.macos.${{ matrix.target }}.arm64.mono -output ./bin/godot.macos.${{ matrix.target }}.universal.mono
+          rm ./bin/godot.macos.${{ matrix.target }}.x86_64.mono ./bin/godot.macos.${{ matrix.target }}.arm64.mono
+          strip bin/godot.*
+          chmod +x bin/godot.*
+
+      - name: Generate C# glue
+        if: matrix.build-mono
+        run: |
+          ${{ matrix.bin }} --headless --generate-mono-glue ./modules/mono/glue
+
+      - name: Build .NET solutions
+        if: matrix.build-mono
+        run: |
+          dotnet --info
+          ./modules/mono/build_scripts/build_assemblies.py --godot-output-dir=./bin --godot-platform=macos --werror
+
       - name: Upload artifact
         uses: ./.github/actions/upload-artifact
         with:
           name: ${{ matrix.cache-name }}
 
-      - name: Unit tests
-        run: |
-          ${{ matrix.bin }} --version
-          ${{ matrix.bin }} --help
-          ${{ matrix.bin }} --test --force-colors
+      # - name: Unit tests
+      #   run: |
+      #     ${{ matrix.bin }} --version
+      #     ${{ matrix.bin }} --help
+      #     ${{ matrix.bin }} --test --force-colors

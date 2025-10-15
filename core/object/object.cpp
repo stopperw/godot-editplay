@@ -1023,13 +1023,60 @@ void Object::_notification_forward(int p_notification) {
 	}
 
 	if (script_instance) {
+		// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+		if (is_class("Node")) {
+			MethodBind *node_get_editplay = ClassDB::get_method("Node", "get_editplay");
+			Callable::CallError call_error;
+			bool is_editplay = node_get_editplay->call(this, nullptr, 0, call_error);
+			if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !is_editplay) {
+				Ref<Script> scr = get_script();
+				if (!scr->is_tool()) {
+					// shouldn't run any user code
+				} else {
+					// should run user code
+					script_instance->notification(p_notification, false);
+				}
+			} else {
+				// should run user code
+				script_instance->notification(p_notification, false);
+			}
+		} else {
+			script_instance->notification(p_notification, false);
+		}
+
+#else
 		script_instance->notification(p_notification, false);
+#endif
 	}
 }
 
 void Object::_notification_backward(int p_notification) {
 	if (script_instance) {
+		// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+		if (is_class("Node")) {
+			MethodBind *node_get_editplay = ClassDB::get_method("Node", "get_editplay");
+			Callable::CallError call_error;
+			bool is_editplay = node_get_editplay->call(this, nullptr, 0, call_error);
+			if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !is_editplay) {
+				Ref<Script> scr = get_script();
+				if (!scr->is_tool()) {
+					// shouldn't run any user code
+				} else {
+					// should run user code
+					script_instance->notification(p_notification, true);
+				}
+			} else {
+				// should run user code
+				script_instance->notification(p_notification, true);
+			}
+		} else {
+			script_instance->notification(p_notification, true);
+		}
+#else
 		script_instance->notification(p_notification, true);
+#endif
 	}
 
 	if (_extension) {

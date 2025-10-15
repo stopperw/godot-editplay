@@ -385,9 +385,11 @@ void Camera2D::_notification(int p_what) {
 
 #ifdef TOOLS_ENABLED
 		case NOTIFICATION_DRAW: {
-			if (!is_inside_tree() || !is_part_of_edited_scene()) {
-				break;
-			}
+			// E_EDITPLAY
+			if (!EditPlay::get_singleton() || !EditPlay::get_singleton()->get_playing())
+				if (!is_inside_tree() || !is_part_of_edited_scene()) {
+					break;
+				}
 
 			if (screen_drawing_enabled) {
 				Color area_axis_color(1, 0.4, 1, 0.63);

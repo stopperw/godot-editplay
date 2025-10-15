@@ -36,13 +36,23 @@
 void SpringArm3D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
+			// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+			if (!Engine::get_singleton()->is_editor_hint() || get_editplay()) {
+#else
 			if (!Engine::get_singleton()->is_editor_hint()) {
+#endif
 				set_physics_process_internal(true);
 			}
 		} break;
 
 		case NOTIFICATION_EXIT_TREE: {
+			// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+			if (!Engine::get_singleton()->is_editor_hint() || get_editplay()) {
+#else
 			if (!Engine::get_singleton()->is_editor_hint()) {
+#endif
 				set_physics_process_internal(false);
 			}
 		} break;

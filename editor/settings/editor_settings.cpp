@@ -1138,6 +1138,12 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 #endif
 	EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "project_manager/default_renderer", default_renderer, "forward_plus,mobile,gl_compatibility")
 
+	/* EditPlay */
+	// E_EDITPLAY
+	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/play_current_scene", true, "")
+	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/make_all_children_editable", false, "")
+	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "editplay/use_project_settings_for_viewport", true, "")
+
 #undef EDITOR_SETTING
 #undef EDITOR_SETTING_BASIC
 #undef EDITOR_SETTING_USAGE

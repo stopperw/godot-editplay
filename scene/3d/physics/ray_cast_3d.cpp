@@ -112,7 +112,12 @@ void RayCast3D::set_enabled(bool p_enabled) {
 	enabled = p_enabled;
 	update_gizmos();
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (is_inside_tree() && (!Engine::get_singleton()->is_editor_hint() || get_editplay())) {
+#else
 	if (is_inside_tree() && !Engine::get_singleton()->is_editor_hint()) {
+#endif
 		set_physics_process_internal(p_enabled);
 	}
 	if (!p_enabled) {
@@ -162,7 +167,12 @@ void RayCast3D::_notification(int p_what) {
 			if (Engine::get_singleton()->is_editor_hint()) {
 				_update_debug_shape_vertices();
 			}
+			// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+			if (enabled && (!Engine::get_singleton()->is_editor_hint() || get_editplay())) {
+#else
 			if (enabled && !Engine::get_singleton()->is_editor_hint()) {
+#endif
 				set_physics_process_internal(true);
 			} else {
 				set_physics_process_internal(false);

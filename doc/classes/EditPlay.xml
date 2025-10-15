@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="EditPlay" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="deinit_autoload">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="engine_cleanup">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="fix_ownership" qualifiers="const">
+			<return type="void" />
+			<param index="0" name="node" type="Node" />
+			<param index="1" name="target_owner" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_current_scene">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_playing">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="get_viewport">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="init">
+			<return type="void" />
+			<param index="0" name="world_viewport" type="Node" />
+			<param index="1" name="current_scene" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="init_autoload">
+			<return type="void" />
+			<param index="0" name="world_viewport" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="input">
+			<return type="void" />
+			<param index="0" name="event" type="InputEvent" />
+			<description>
+			</description>
+		</method>
+		<method name="is_paused">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="process">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="ready">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="set_paused">
+			<return type="void" />
+			<param index="0" name="is_paused" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="set_playing">
+			<return type="void" />
+			<param index="0" name="is_playing" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="trigger_build" qualifiers="const">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="zap_cache">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<signals>
+		<signal name="stop_triggered">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

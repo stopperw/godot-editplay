@@ -54,7 +54,8 @@ bool AnimatableBody3D::is_sync_to_physics_enabled() const {
 
 void AnimatableBody3D::_update_kinematic_motion() {
 #ifdef TOOLS_ENABLED
-	if (Engine::get_singleton()->is_editor_hint()) {
+	// E_EDITPLAY
+	if (Engine::get_singleton()->is_editor_hint() && !get_editplay()) {
 		return;
 	}
 #endif
@@ -85,7 +86,8 @@ void AnimatableBody3D::_body_state_changed(PhysicsDirectBodyState3D *p_state) {
 
 void AnimatableBody3D::_notification(int p_what) {
 #ifdef TOOLS_ENABLED
-	if (Engine::get_singleton()->is_editor_hint()) {
+	// E_EDITPLAY
+	if (Engine::get_singleton()->is_editor_hint() && !get_editplay()) {
 		return;
 	}
 #endif

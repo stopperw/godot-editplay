@@ -872,6 +872,11 @@ public:
 	Error load_resource(const String &p_resource, bool p_ignore_broken_deps = false);
 	Error load_scene_or_resource(const String &p_file, bool p_ignore_broken_deps = false, bool p_change_scene_tab_if_already_open = true);
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	void close_scene(int p_tab);
+#endif
+
 	HashMap<StringName, Variant> get_modified_properties_for_node(Node *p_node, bool p_node_references_only);
 	HashMap<StringName, Variant> get_modified_properties_reference_to_nodes(Node *p_node, List<Node *> &p_nodes_referenced_by);
 
