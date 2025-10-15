@@ -682,6 +682,15 @@
 		<member name="editors/visual_editors/visual_shader/port_preview_size" type="int" setter="" getter="">
 			The size to use for port previews in the visual shader uniforms (toggled by clicking the "eye" icon next to an output). The value is defined in pixels at 100% zoom, and will scale with zoom automatically.
 		</member>
+		<member name="editplay/make_all_children_editable" type="bool" setter="" getter="">
+			If [code]true[/code], EditPlay will make all instanced scene show all children. Can cause decreased performance and lag spikes, so use with care.
+		</member>
+		<member name="editplay/play_current_scene" type="bool" setter="" getter="">
+			If [code]true[/code], EditPlay will start currently open scene instead of project's main scene.
+		</member>
+		<member name="editplay/use_project_settings_for_viewport" type="bool" setter="" getter="">
+			If [code]true[/code], EditPlay will configure it's SubViewport like current project settings.
+		</member>
 		<member name="export/ssh/scp" type="String" setter="" getter="">
 			Path to the SCP (secure copy) executable (used for remote deploy to desktop platforms). If left empty, the editor will attempt to run [code]scp[/code] from [code]PATH[/code].
 			[b]Note:[/b] SCP is not the same as SFTP. Specifying the SFTP executable here will not work.

@@ -362,6 +362,11 @@
 				If [param include_internal] is [code]false[/code], excludes internal children from the returned array (see [method add_child]'s [code]internal[/code] parameter).
 			</description>
 		</method>
+		<method name="get_editplay" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
 		<method name="get_groups" qualifiers="const">
 			<return type="StringName[]" />
 			<description>
@@ -929,6 +934,12 @@
 			<param index="1" name="is_editable" type="bool" />
 			<description>
 				Set to [code]true[/code] to allow all nodes owned by [param node] to be available, and editable, in the Scene dock, even if their [member owner] is not the scene root. This method is intended to be used in editor plugins and tools, but it also works in release builds. See also [method is_editable_instance].
+			</description>
+		</method>
+		<method name="set_editplay">
+			<return type="void" />
+			<param index="0" name="set_editplay" type="bool" />
+			<description>
 			</description>
 		</method>
 		<method name="set_multiplayer_authority">

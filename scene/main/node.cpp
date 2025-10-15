@@ -101,6 +101,12 @@ void Node::_notification(int p_notification) {
 				}
 			}
 
+			// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+			if (find_editplay())
+				set_editplay(true);
+#endif
+
 			// Update process mode.
 			if (data.process_mode == PROCESS_MODE_INHERIT) {
 				if (data.parent) {
@@ -310,6 +316,16 @@ void Node::_propagate_ready() {
 
 	data.blocked--;
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !data.editplay) {
+		Ref<Script> scr = get_script();
+		if (!scr->is_tool()) {
+			return;
+		}
+	}
+#endif
+
 	notification(NOTIFICATION_POST_ENTER_TREE);
 
 	if (data.ready_first) {
@@ -321,7 +337,6 @@ void Node::_propagate_ready() {
 
 void Node::_propagate_enter_tree() {
 	// this needs to happen to all children before any enter_tree
-
 	if (data.parent) {
 		data.tree = data.parent->data.tree;
 		data.depth = data.parent->data.depth + 1;
@@ -338,9 +353,31 @@ void Node::_propagate_enter_tree() {
 		E.value.group = data.tree->add_to_group(E.key, this);
 	}
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !data.editplay) {
+		Ref<Script> scr = get_script();
+		if (!scr->is_tool()) {
+			// shouldn't run any user code
+			notification(NOTIFICATION_ENTER_TREE);
+		} else {
+			// should run user code
+			notification(NOTIFICATION_ENTER_TREE);
+
+			GDVIRTUAL_CALL(_enter_tree);
+		}
+	} else {
+		// should run user code
+		notification(NOTIFICATION_ENTER_TREE);
+
+		GDVIRTUAL_CALL(_enter_tree);
+	}
+#else
+	// should run user code, engine'll figure it out
 	notification(NOTIFICATION_ENTER_TREE);
 
 	GDVIRTUAL_CALL(_enter_tree);
+#endif
 
 	emit_signal(SceneStringName(tree_entered));
 
@@ -405,7 +442,24 @@ void Node::_propagate_exit_tree() {
 
 	data.blocked--;
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !data.editplay) {
+		Ref<Script> scr = get_script();
+		if (!scr->is_tool()) {
+			// shouldn't run any user code
+		} else {
+			// should run user code
+			GDVIRTUAL_CALL(_exit_tree);
+		}
+	} else {
+		// should run user code
+		GDVIRTUAL_CALL(_exit_tree);
+	}
+#else
+	// should run user code, engine'll figure it out
 	GDVIRTUAL_CALL(_exit_tree);
+#endif
 
 	emit_signal(SceneStringName(tree_exiting));
 
@@ -594,6 +648,25 @@ void Node::owner_changed_notify() {
 }
 
 void Node::_physics_interpolated_changed() {}
+
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+void Node::set_editplay(bool set_editplay) {
+	data.editplay = set_editplay;
+}
+
+bool Node::get_editplay() const {
+	return data.editplay;
+}
+
+bool Node::find_editplay() const {
+	if (data.editplay)
+		return true;
+	if (data.parent)
+		return data.parent->find_editplay();
+	return false;
+}
+#endif
 
 void Node::set_physics_process(bool p_process) {
 	ERR_THREAD_GUARD
@@ -887,10 +960,64 @@ bool Node::can_process_notification(int p_what) const {
 
 bool Node::can_process() const {
 	ERR_FAIL_COND_V(!is_inside_tree(), false);
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing() && EditPlay::get_singleton()->get_viewport()->is_ancestor_of(this) && !data.editplay)
+		return false;
+#endif
 	return !data.tree->is_suspended() && _can_process(data.tree->is_paused());
 }
 
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+bool Node::can_process_editplay() const {
+	ERR_FAIL_COND_V(!is_inside_tree(), false);
+	return _can_process_editplay(get_tree()->is_paused());
+}
+#endif
+
 bool Node::_can_process(bool p_paused) const {
+	ProcessMode process_mode;
+
+	if (data.process_mode == PROCESS_MODE_INHERIT) {
+		if (!data.process_owner) {
+			process_mode = PROCESS_MODE_PAUSABLE;
+		} else {
+			process_mode = data.process_owner->data.process_mode;
+		}
+	} else {
+		process_mode = data.process_mode;
+	}
+
+	// The owner can't be set to inherit, must be a bug.
+	ERR_FAIL_COND_V(process_mode == PROCESS_MODE_INHERIT, false);
+
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint() && !get_script().is_null() && !data.editplay) {
+		Ref<Script> scr = get_script();
+		if (!scr->is_tool()) {
+			return false;
+		}
+	}
+#endif
+
+	if (process_mode == PROCESS_MODE_DISABLED) {
+		return false;
+	} else if (process_mode == PROCESS_MODE_ALWAYS) {
+		return true;
+	}
+
+	if (p_paused) {
+		return process_mode == PROCESS_MODE_WHEN_PAUSED;
+	} else {
+		return process_mode == PROCESS_MODE_PAUSABLE;
+	}
+}
+
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+bool Node::_can_process_editplay(bool p_paused) const {
 	ProcessMode process_mode;
 
 	if (data.process_mode == PROCESS_MODE_INHERIT) {
@@ -918,6 +1045,7 @@ bool Node::_can_process(bool p_paused) const {
 		return process_mode == PROCESS_MODE_PAUSABLE;
 	}
 }
+#endif
 
 void Node::set_physics_interpolation_mode(PhysicsInterpolationMode p_mode) {
 	ERR_THREAD_GUARD
@@ -1847,10 +1975,25 @@ Node *Node::get_node_or_null(const NodePath &p_path) const {
 	if (!p_path.is_absolute()) {
 		current = const_cast<Node *>(this); //start from this
 	} else {
+		// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+		if (get_editplay()) {
+			root = const_cast<Node *>(this);
+			while (root->data.parent && root->data.parent->get_editplay()) {
+				root = root->data.parent; //start from root
+			}
+		} else {
+			root = const_cast<Node *>(this);
+			while (root->data.parent) {
+				root = root->data.parent; //start from root
+			}
+		}
+#else
 		root = const_cast<Node *>(this);
 		while (root->data.parent) {
 			root = root->data.parent; //start from root
 		}
+#endif
 	}
 
 	for (int i = 0; i < p_path.get_name_count(); i++) {
@@ -2705,6 +2848,9 @@ StringName Node::get_property_store_alias(const StringName &p_property) const {
 }
 
 bool Node::is_part_of_edited_scene() const {
+	// E_EDITPLAY
+	if (data.editplay)
+		return false;
 	return Engine::get_singleton()->is_editor_hint() && is_inside_tree() && data.tree->get_edited_scene_root() &&
 			data.tree->get_edited_scene_root()->get_parent()->is_ancestor_of(this);
 }
@@ -3800,6 +3946,12 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_physics_interpolated_and_enabled"), &Node::is_physics_interpolated_and_enabled);
 	ClassDB::bind_method(D_METHOD("reset_physics_interpolation"), &Node::reset_physics_interpolation);
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	ClassDB::bind_method(D_METHOD("get_editplay"), &Node::get_editplay);
+	ClassDB::bind_method(D_METHOD("set_editplay", "set_editplay"), &Node::set_editplay);
+#endif
+
 	ClassDB::bind_method(D_METHOD("set_auto_translate_mode", "mode"), &Node::set_auto_translate_mode);
 	ClassDB::bind_method(D_METHOD("get_auto_translate_mode"), &Node::get_auto_translate_mode);
 	ClassDB::bind_method(D_METHOD("can_auto_translate"), &Node::can_auto_translate);
@@ -4044,6 +4196,11 @@ Node::Node() {
 	orphan_node_count++;
 
 	// Default member initializer for bitfield is a C++20 extension, so:
+
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	data.editplay = false;
+#endif
 
 	data.process_mode = PROCESS_MODE_INHERIT;
 	data.physics_interpolation_mode = PHYSICS_INTERPOLATION_MODE_INHERIT;

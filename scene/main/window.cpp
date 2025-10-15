@@ -1357,6 +1357,12 @@ bool Window::get_force_native() const {
 
 Viewport *Window::get_embedder() const {
 	ERR_READ_THREAD_GUARD_V(nullptr);
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (get_editplay() && is_inside_tree())
+		return get_tree()->get_root();
+#endif
+
 	if (force_native && DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_SUBWINDOWS) && !is_in_edited_scene_root()) {
 		return nullptr;
 	}

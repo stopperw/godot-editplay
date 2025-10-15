@@ -469,7 +469,12 @@ NavigationRegion3D::~NavigationRegion3D() {
 
 #ifdef DEBUG_ENABLED
 void NavigationRegion3D::_update_debug_mesh() {
+	// E_EDITPLAY: Stops the debug shapes from being visible after messing with is_editor_hint()
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint() || (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing())) {
+#else
 	if (Engine::get_singleton()->is_editor_hint()) {
+#endif
 		// don't update inside Editor as node 3d gizmo takes care of this
 		// as collisions and selections for Editor Viewport need to be updated
 		return;

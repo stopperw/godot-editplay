@@ -35,7 +35,8 @@ void Timer::_notification(int p_what) {
 		case NOTIFICATION_READY: {
 			if (autostart) {
 #ifdef TOOLS_ENABLED
-				if (is_part_of_edited_scene()) {
+				// E_EDITPLAY
+				if (is_part_of_edited_scene() && !get_editplay()) {
 					break;
 				}
 #endif
@@ -48,6 +49,12 @@ void Timer::_notification(int p_what) {
 			if (!processing || timer_process_callback == TIMER_PROCESS_PHYSICS || !is_processing_internal()) {
 				return;
 			}
+			// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+			if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing() && !get_editplay()) {
+				return;
+			}
+#endif
 			if (ignore_time_scale) {
 				time_left -= Engine::get_singleton()->get_process_step();
 			} else {
@@ -69,6 +76,12 @@ void Timer::_notification(int p_what) {
 			if (!processing || timer_process_callback == TIMER_PROCESS_IDLE || !is_physics_processing_internal()) {
 				return;
 			}
+			// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+			if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing() && !get_editplay()) {
+				return;
+			}
+#endif
 			if (ignore_time_scale) {
 				time_left -= Engine::get_singleton()->get_process_step();
 			} else {

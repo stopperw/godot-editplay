@@ -582,9 +582,18 @@ void SceneTree::set_physics_interpolation_enabled(bool p_enabled) {
 	_physics_interpolation_enabled_in_project = p_enabled;
 
 	// We never want interpolation in the editor.
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint() && (!EditPlay::get_singleton() || !EditPlay::get_singleton()->get_playing())) {
+		p_enabled = false;
+	} else {
+		p_enabled = true;
+	}
+#else
 	if (Engine::get_singleton()->is_editor_hint()) {
 		p_enabled = false;
 	}
+#endif
 
 	if (p_enabled == _physics_interpolation_enabled) {
 		return;
@@ -873,6 +882,14 @@ void SceneTree::finalize() {
 void SceneTree::quit(int p_exit_code) {
 	_THREAD_SAFE_METHOD_
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		print_line("[EditPlay] Preventing SceneTree::quit() to stop editor from exiting. Please stop the EditPlay session.");
+		return;
+	}
+#endif
+
 	OS::get_singleton()->set_exit_code(p_exit_code);
 	_quit = true;
 }
@@ -1099,6 +1116,14 @@ void SceneTree::set_pause(bool p_enabled) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Pause can only be set from the main thread.");
 	ERR_FAIL_COND_MSG(suspended, "Pause state cannot be modified while suspended.");
 
+	// E_EDITPLAY
+// #ifdef TOOLS_ENABLED
+// 	if (p_enabled && EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+// 		print_line("[EditPlay] Preventing SceneTree::set_pause(true) to stop editor from freezing.");
+// 		return;
+// 	}
+// #endif
+
 	if (p_enabled == paused) {
 		return;
 	}
@@ -1119,6 +1144,29 @@ void SceneTree::set_pause(bool p_enabled) {
 bool SceneTree::is_paused() const {
 	return paused;
 }
+
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+void SceneTree::set_pause_fake_bind(bool p_enabled) {
+	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Pause can only be set from the main thread.");
+	ERR_FAIL_COND_MSG(suspended, "Pause state cannot be modified while suspended.");
+
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		editplay_fake_paused = p_enabled;
+		return;
+	}
+
+	set_pause(p_enabled);
+}
+
+bool SceneTree::is_paused_fake_bind() const {
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		return editplay_fake_paused;
+	}
+
+	return is_paused();
+}
+#endif
 
 void SceneTree::set_suspend(bool p_enabled) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Suspend can only be set from the main thread.");
@@ -1636,9 +1684,22 @@ Node *SceneTree::get_edited_scene_root() const {
 
 void SceneTree::set_current_scene(Node *p_scene) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Changing scene can only be done from the main thread.");
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	// ERR_FAIL_COND(p_scene && p_scene->get_parent() != root);
+#else
 	ERR_FAIL_COND(p_scene && p_scene->get_parent() != root);
+#endif
 	current_scene = p_scene;
 }
+
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+void SceneTree::set_current_scene_unchecked(Node *p_scene) {
+	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Changing scene can only be done from the main thread.");
+	current_scene = p_scene;
+}
+#endif
 
 Node *SceneTree::get_current_scene() const {
 	return current_scene;
@@ -1661,7 +1722,18 @@ void SceneTree::_flush_scene_change() {
 		current_scene = pending_new_scene;
 		pending_new_scene_id = ObjectID();
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+		if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+			EditPlay::get_singleton()->get_viewport()->add_child(pending_new_scene);
+			EditPlay::get_singleton()->fix_ownership(pending_new_scene, EditPlay::get_singleton()->get_viewport());
+			EditPlay::get_singleton()->set_current_scene(pending_new_scene);
+		} else {
+			root->add_child(pending_new_scene);
+		}
+#else
 		root->add_child(pending_new_scene);
+#endif
 		// Update display for cursor instantly.
 		root->update_mouse_cursor_state();
 
@@ -1703,7 +1775,16 @@ Error SceneTree::change_scene_to_packed(const Ref<PackedScene> &p_scene) {
 		prev_scene_id = current_scene->get_instance_id();
 		// Let as many side effects as possible happen or be queued now,
 		// so they are run before the scene is actually deleted.
+		// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+		if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+			EditPlay::get_singleton()->get_current_scene()->get_parent()->remove_child(EditPlay::get_singleton()->get_current_scene());
+		} else {
+			root->remove_child(current_scene);
+		}
+#else
 		root->remove_child(current_scene);
+#endif
 	}
 	DEV_ASSERT(!current_scene);
 
@@ -1729,7 +1810,17 @@ void SceneTree::unload_current_scene() {
 void SceneTree::add_current_scene(Node *p_current) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Adding a current scene can only be done from the main thread.");
 	current_scene = p_current;
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		EditPlay::get_singleton()->get_viewport()->add_child(p_current);
+		EditPlay::get_singleton()->fix_ownership(p_current, EditPlay::get_singleton()->get_viewport());
+	} else {
+		root->add_child(p_current);
+	}
+#else
 	root->add_child(p_current);
+#endif
 }
 
 Ref<SceneTreeTimer> SceneTree::create_timer(double p_delay_sec, bool p_process_always, bool p_process_in_physics, bool p_ignore_time_scale) {
@@ -1854,8 +1945,24 @@ bool SceneTree::is_multiplayer_poll_enabled() const {
 	return multiplayer_poll;
 }
 
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+Window* SceneTree::get_root_fake_bind() const {
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		Window *window = cast_to<Window>(EditPlay::get_singleton()->get_viewport());
+		return window;
+	}
+	return root;
+}
+#endif
+
 void SceneTree::_bind_methods() {
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	ClassDB::bind_method(D_METHOD("get_root"), &SceneTree::get_root_fake_bind);
+#else
 	ClassDB::bind_method(D_METHOD("get_root"), &SceneTree::get_root);
+#endif
 	ClassDB::bind_method(D_METHOD("has_group", "name"), &SceneTree::has_group);
 
 	ClassDB::bind_method(D_METHOD("is_accessibility_enabled"), &SceneTree::is_accessibility_enabled);
@@ -1876,8 +1983,14 @@ void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_edited_scene_root", "scene"), &SceneTree::set_edited_scene_root);
 	ClassDB::bind_method(D_METHOD("get_edited_scene_root"), &SceneTree::get_edited_scene_root);
 
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	ClassDB::bind_method(D_METHOD("set_pause", "enable"), &SceneTree::set_pause_fake_bind);
+	ClassDB::bind_method(D_METHOD("is_paused"), &SceneTree::is_paused_fake_bind);
+#else
 	ClassDB::bind_method(D_METHOD("set_pause", "enable"), &SceneTree::set_pause);
 	ClassDB::bind_method(D_METHOD("is_paused"), &SceneTree::is_paused);
+#endif
 
 	ClassDB::bind_method(D_METHOD("create_timer", "time_sec", "process_always", "process_in_physics", "ignore_time_scale"), &SceneTree::create_timer, DEFVAL(true), DEFVAL(false), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("create_tween"), &SceneTree::create_tween);

@@ -229,7 +229,8 @@ void Node3D::_notification(int p_what) {
 			}
 
 #ifdef TOOLS_ENABLED
-			if (is_part_of_edited_scene() && !data.gizmos_requested) {
+			// E_EDITPLAY
+			if (is_part_of_edited_scene() || (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing())) {
 				data.gizmos_requested = true;
 				get_tree()->call_group_flags(SceneTree::GROUP_CALL_DEFERRED, SceneStringName(_spatial_editor_group), SNAME("_request_gizmo_for_id"), get_instance_id());
 			}
@@ -618,6 +619,9 @@ Transform3D Node3D::get_global_transform_interpolated() {
 }
 
 Transform3D Node3D::get_global_transform() const {
+	if (!is_inside_tree()) {
+		print_line(get_name());
+	}
 	ERR_FAIL_COND_V(!is_inside_tree(), Transform3D());
 
 	/* Due to how threads work at scene level, while this global transform won't be able to be changed from outside a thread,
@@ -863,7 +867,8 @@ void Node3D::set_subgizmo_selection(Ref<Node3DGizmo> p_gizmo, int p_id, Transfor
 		return;
 	}
 
-	if (is_part_of_edited_scene()) {
+	// E_EDITPLAY
+	if (is_part_of_edited_scene() || (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing())) {
 		get_tree()->call_group_flags(SceneTree::GROUP_CALL_DEFERRED, SceneStringName(_spatial_editor_group), SNAME("_set_subgizmo_selection"), this, p_gizmo, p_id, p_transform);
 	}
 #endif
@@ -880,7 +885,8 @@ void Node3D::clear_subgizmo_selection() {
 		return;
 	}
 
-	if (is_part_of_edited_scene()) {
+	// E_EDITPLAY
+	if (is_part_of_edited_scene() || (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing())) {
 		get_tree()->call_group_flags(SceneTree::GROUP_CALL_DEFERRED, SceneStringName(_spatial_editor_group), SNAME("_clear_subgizmo_selection"), this);
 	}
 #endif

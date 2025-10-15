@@ -2130,6 +2130,14 @@ static void _reset_animation_mixers(Node *p_node, List<Pair<AnimationMixer *, Re
 void EditorNode::_save_scene(String p_file, int idx) {
 	ERR_FAIL_COND_MSG(!saving_scene.is_empty() && saving_scene == p_file, "Scene saved while already being saved!");
 
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		print_line("[EditPlay] Saving scenes is disabled while EditPlay session is active.");
+		return;
+	}
+#endif
+
 	Node *scene = editor_data.get_edited_scene_root(idx);
 
 	if (!scene) {
@@ -3066,6 +3074,13 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		case SCENE_SAVE_SCENE: {
 			int scene_idx = (p_option == SCENE_SAVE_SCENE) ? -1 : tab_closing_idx;
 			Node *scene = editor_data.get_edited_scene_root(scene_idx);
+			// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+			if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+				ScriptEditor::get_singleton()->save_current_script();
+				break;
+			}
+#endif
 			if (scene && !scene->get_scene_file_path().is_empty()) {
 				if (DirAccess::exists(scene->get_scene_file_path().get_base_dir())) {
 					if (scene_idx != editor_data.get_edited_scene()) {
@@ -3090,6 +3105,14 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			int scene_idx = (p_option == SCENE_SAVE_SCENE || p_option == SCENE_SAVE_AS_SCENE || p_option == SCENE_MULTI_SAVE_AS_SCENE) ? -1 : tab_closing_idx;
 
 			Node *scene = editor_data.get_edited_scene_root(scene_idx);
+
+			// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+			if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+				ScriptEditor::get_singleton()->save_current_script();
+				break;
+			}
+#endif
 
 			if (!scene) {
 				if (p_option == SCENE_SAVE_SCENE) {
@@ -3721,6 +3744,14 @@ int EditorNode::_next_unsaved_scene(bool p_valid_filename, int p_start) {
 		}
 
 		bool unsaved = EditorUndoRedoManager::get_singleton()->is_history_unsaved(editor_data.get_scene_history_id(i));
+
+		// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+		if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing() && editor_data.get_edited_scene_root(i)->get_editplay()) {
+			continue;
+		}
+#endif
+
 		if (unsaved) {
 			return i;
 		} else {
@@ -3742,6 +3773,13 @@ void EditorNode::_exit_editor(int p_exit_code) {
 
 	// Dim the editor window while it's quitting to make it clearer that it's busy.
 	dim_editor(true);
+
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		EditPlay::get_singleton()->set_playing(false);
+	}
+#endif
 
 	// Unload addons before quitting to allow cleanup.
 	unload_editor_addons();
@@ -4338,6 +4376,13 @@ void EditorNode::fix_dependencies(const String &p_for_file) {
 }
 
 int EditorNode::new_scene() {
+	// E_EDITPLAY: prevent making new scenes when EditPlay is active
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		return -1;
+	}
+#endif
+
 	int idx = editor_data.add_edited_scene(-1);
 	_set_current_scene(idx); // Before trying to remove an empty scene, set the current tab index to the newly added tab index.
 
@@ -6187,6 +6232,13 @@ void EditorNode::_restart_editor(bool p_goto_project_manager) {
 	OS::get_singleton()->set_restart_on_exit(true, args);
 }
 
+// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+void EditorNode::close_scene(int p_tab) {
+	_scene_tab_closed(p_tab);
+}
+#endif
+
 void EditorNode::_scene_tab_closed(int p_tab) {
 	current_menu_option = SCENE_TAB_CLOSE;
 	tab_closing_idx = p_tab;
@@ -6195,6 +6247,14 @@ void EditorNode::_scene_tab_closed(int p_tab) {
 		_discard_changes();
 		return;
 	}
+	// E_EDITPLAY: Don't show the save dialog for EditPlay scene tab
+#ifdef TOOLS_ENABLED
+	if (scene->get_editplay()) {
+		EditPlay::get_singleton()->trigger_scene_close_stop();
+		_discard_changes();
+		return;
+	}
+#endif
 
 	String scene_filename = scene->get_scene_file_path();
 	String unsaved_message;
@@ -6512,6 +6572,14 @@ void EditorNode::_notify_nodes_scene_reimported(Node *p_node, Array p_reimported
 
 void EditorNode::reload_scene(const String &p_path) {
 	int scene_idx = -1;
+
+	// E_EDITPLAY
+#ifdef TOOLS_ENABLED
+	if (EditPlay::get_singleton() && EditPlay::get_singleton()->get_playing()) {
+		print_line("[EditPlay] Reloading is disabled while EditPlay session is active.");
+		return;
+	}
+#endif
 
 	String lpath = ProjectSettings::get_singleton()->localize_path(p_path);
 
@@ -7548,7 +7616,8 @@ EditorNode::EditorNode() {
 #endif // PHYSICS_2D_DISABLED
 
 		// No scripting by default if in editor (except for tool).
-		ScriptServer::set_scripting_enabled(false);
+		// E_EDITPLAY: Need all scripting to be enabled for this to work
+		// ScriptServer::set_scripting_enabled(false);
 
 		if (!DisplayServer::get_singleton()->is_touchscreen_available()) {
 			// Only if no touchscreen ui hint, disable emulation just in case.
