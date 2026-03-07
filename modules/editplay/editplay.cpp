@@ -11,7 +11,7 @@
 #include "scene/main/window.h"
 #include "scene/main/multiplayer_api.h"
 #include "scene/resources/packed_scene.h"
-#include "servers/audio_server.h"
+#include "servers/audio/audio_server.h"
 #ifdef TOOLS_ENABLED
 #include "editor/editor_data.h"
 #include "editor/editor_node.h"
